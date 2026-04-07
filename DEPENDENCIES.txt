@@ -1,0 +1,39 @@
+# AADE — Unified Dependency List
+# (List generated on Windows for reference. Use 'master_install.sh' on Kali Host)
+
+## Core System (Linux Host)
+firecracker (AWS binary, v1.7.0+)
+cowrie (SSH/Telnet Honeypot)
+debootstrap (Rootfs builder)
+iptables (Containment)
+mitmproxy (C2 Interception)
+dnsmasq (DNS Sinkhole)
+
+## Python Base Dependencies
+flask (Dashboard)
+flask-socketio (Real-time updates)
+requests (API calls)
+tailer (Log monitoring)
+faker (Noise Generation)
+psutil (System metrics)
+scapy (Packet capture)
+twisted (Cowrie protocol core)
+paramiko (SSH automation)
+watchdog (FS triggers)
+
+## [ADVANCED] Reinforcement Learning & Machine Learning
+stable-baselines3[extra] (RL Training Framework)
+gymnasium (OpenAI Gym replacement)
+torch (PyTorch Deep Learning Backend)
+numpy (Data processing)
+pandas (Intelligence analytics)
+
+## [ADVANCED] Behavioral Synthesis (LLM)
+openai (OpenAI GPT API)
+# Local LLM Alternative:
+# ollama-python (Ollama API for local Llama3)
+
+## Intelligence & Mapping
+mitreattack-python (MITRE ATT&CK SDK)
+elasticsearch (Optional: Log storage)
+kibana (Optional: Visualisation)

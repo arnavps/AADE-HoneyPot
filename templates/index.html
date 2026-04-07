@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AADE | Intelligence Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --panel: rgba(20, 20, 30, 0.8);
+            --border: rgba(0, 255, 204, 0.2);
+            --primary: #00ffcc;
+            --secondary: #ff0055;
+            --accent: #bd00ff;
+            --text: #e0e0e5;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            background-image: radial-gradient(circle at 20% 20%, rgba(0, 255, 204, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 80% 80%, rgba(189, 0, 255, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            margin: 0; padding: 20px;
+        }
+
+        .glass-card {
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.1);
+        }
+
+        .stat-val {
+            font-size: 2.8rem;
+            font-weight: 700;
+            display: block;
+            line-height: 1;
+        }
+
+        #mode-indicator {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .mode-low { background: rgba(0, 255, 204, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .mode-high { background: rgba(189, 0, 255, 0.1); color: var(--accent); border: 1px solid var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .table-intel {
+            width: 100%; border-collapse: separate; border-spacing: 0 8px;
+        }
+
+        .table-intel tr { background: rgba(255,255,255,0.03); }
+        .table-intel td, .table-intel th { padding: 12px 16px; font-size: 0.9rem; }
+        .table-intel th { color: var(--primary); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+
+        .tag-ttp {
+            background: var(--secondary);
+            color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; 
+            font-weight: 700; margin-right: 4px;
+        }
+
+        .synthetic-badge {
+            background: #fff; color: #000; font-size: 0.65rem; padding: 1px 4px; 
+            border-radius: 3px; vertical-align: middle; margin-left: 8px; font-weight: 800;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .cyber-title { background: linear-gradient(90deg, #00ffcc, #bd00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="h3 fw-bold m-0 cyber-title">AADE INTELLIGENCE PLANE</h1>
+                <p class="text-secondary small">Autonomous Adaptive Deception Environment v1.1</p>
+            </div>
+            <div id="mode-indicator" class="mode-low">MONITORING</div>
+        </header>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <span class="text-secondary small text-uppercase">Total Intel Points</span>
+                    <span class="stat-val" id="stat-cmds" style="color: var(--primary)">0</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <span class="text-secondary small text-uppercase">Unique TTPs</span>
+                    <span class="stat-val" id="stat-ttps" style="color: var(--secondary)">0</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <span class="text-secondary small text-uppercase">Ghost Reponses</span>
+                    <span class="stat-val" id="stat-synth" style="color: #fff">0</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <span class="text-secondary small text-uppercase">System Risk</span>
+                    <span class="stat-val" id="stat-risk" style="color: var(--accent)">LOW</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-0 overflow-hidden">
+            <div class="px-4 py-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold">Live Data Flux</h5>
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            </div>
+            <div class="table-responsive" style="max-height: 500px;">
+                <table class="table-intel">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Host</th>
+                            <th>Identity</th>
+                            <th>Command</th>
+                            <th>ATT&CK Mapping</th>
+                        </tr>
+                    </thead>
+                    <tbody id="intel-body">
+                        <!-- Polled Content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchState() {
+            try {
+                const sReq = await fetch('/api/stats');
+                const stats = await sReq.json();
+                
+                document.getElementById('stat-cmds').innerText = stats.total_commands;
+                document.getElementById('stat-ttps').innerText = stats.unique_ttps;
+                document.getElementById('stat-synth').innerText = stats.synthetic_responses;
+                
+                const modeEl = document.getElementById('mode-indicator');
+                modeEl.innerText = stats.mode;
+                modeEl.className = stats.mode.includes('High') ? 'mode-high' : 'mode-low';
+                
+                document.getElementById('stat-risk').innerText = stats.unique_ttps > 3 ? 'HIGH' : 'LOW';
+
+                const iReq = await fetch('/api/intel');
+                const events = await iReq.json();
+                const tbody = document.getElementById('intel-body');
+                tbody.innerHTML = '';
+
+                events.forEach(ev => {
+                    const row = document.createElement('tr');
+                    const tags = (ev.mitre_tags || []).map(t => `<span class="tag-ttp">${t.id}</span>`).join('');
+                    const synth = ev.llm_synthesized ? `<span class="synthetic-badge">SYNTHETIC</span>` : '';
+                    const time = ev.timestamp ? ev.timestamp.split('T')[1].split('.')[0] : '--:--';
+
+                    row.innerHTML = `
+                        <td class="mono text-secondary">${time}</td>
+                        <td class="fw-bold">${ev.hostname || 'guest'}</td>
+                        <td>${ev.user || 'attacker'}</td>
+                        <td class="mono text-primary">${ev.cmd} ${synth}</td>
+                        <td>${tags}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (e) {
+                console.error("Link offline");
+            }
+        }
+
+        setInterval(fetchState, 1500);
+        fetchState();
+    </script>
+</body>
+</html>
