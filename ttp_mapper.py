@@ -26,6 +26,10 @@ TTP_MAPPINGS = {
     r'/bin/bash\s+-i': ('T1059.004', 'Command and Scripting Interpreter: Unix Shell'),
     r'python.*\s+-c\s+.*import\s+socket': ('T1059.006', 'Python Interpretation (Reverse Shell)'),
     
+    # Impact & Resource Hijacking
+    r'\b(zip|tar|gpg|openssl|base64)\b': ('T1486', 'Data Encrypted for Impact (Ransomware)'),
+    r'\b(xmrig|miner|cpuminer|nohup.*&)\b': ('T1496', 'Resource Hijacking (Cryptojacking)'),
+    
     # Defense Evasion
     r'\b(rm\s+.*log|unset\s+HISTFILE)\b': ('T1070', 'Indicator Removal on Host'),
     r'\b(iptables\s+-F|systemctl\s+stop\s+firewalld)\b': ('T1562.004', 'Impair Defenses: Disable or Modify Firewalls')

