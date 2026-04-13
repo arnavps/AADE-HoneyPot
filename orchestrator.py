@@ -91,5 +91,8 @@ class MasterOrchestrator:
                 pass
 
 if __name__ == '__main__':
-    orch = MasterOrchestrator()
-    orch.monitor_cowrie()
+    try:
+        orch = MasterOrchestrator()
+        orch.monitor_cowrie()
+    except KeyboardInterrupt:
+        print("\n[*] AADE Orchestrator: Shutting down gracefully...")
