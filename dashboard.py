@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+from datetime import datetime
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
 from ttp_mapper import map_command_to_ttpx
@@ -17,8 +18,17 @@ class DashboardAPI:
         events = []
         log_paths = glob.glob(os.path.join(LOG_DIR, '*.jsonl'))
         COWRIE_PATH = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+        # Check alternative common paths for Cowrie logs
+        ALT_COWRIE_PATHS = [
+            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json.1'),
+            os.path.expanduser('~/aade/cowrie/cowrie.json')
+        ]
+        
         if os.path.exists(COWRIE_PATH):
             log_paths.append(COWRIE_PATH)
+        for alt_path in ALT_COWRIE_PATHS:
+            if os.path.exists(alt_path):
+                log_paths.append(alt_path)
 
         for path in sorted(log_paths, reverse=True)[:10]: # Read more files for stats
             try:
