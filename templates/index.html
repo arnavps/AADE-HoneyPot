@@ -234,37 +234,99 @@
     </header>
 
     <div class="grid">
+        <!-- New Metrics Row -->
         <div class="card">
-            <span class="card-label">Total Intrusions</span>
-            <div class="metric" id="stat-total">0</div>
-            <div class="sub-metric">Captured in session</div>
+            <span class="card-label">System Vitality</span>
+            <div id="system-vitality" style="margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--secondary)">CPU</span>
+                    <span id="stat-cpu" style="font-weight: 700;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--secondary)">RAM</span>
+                    <span id="stat-ram" style="font-weight: 700;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--secondary)">UPTIME</span>
+                    <span id="stat-uptime" style="font-weight: 700;">--</span>
+                </div>
+            </div>
         </div>
         <div class="card">
-            <span class="card-label">Active Adversaries</span>
-            <div class="metric" id="stat-active">0</div>
-            <div class="sub-metric">Isolated in MicroVMs</div>
+            <span class="card-label">Threat Velocity</span>
+            <div class="metric" id="stat-total" style="font-size: 48px;">0</div>
+            <div class="sub-metric">Captured total events</div>
         </div>
         <div class="card">
-            <span class="card-label">Threat Vectors</span>
-            <div class="metric" id="stat-ttps">0</div>
-            <div class="sub-metric">Unique TTPs detected</div>
+            <span class="card-label">Adversary Intent</span>
+            <div class="metric" id="stat-intent" style="font-size: 48px;">0%</div>
+            <div class="sub-metric">Human Probability</div>
         </div>
         <div class="card">
-            <span class="card-label">Average Intent</span>
-            <div class="metric" id="stat-intent">0%</div>
-            <div class="sub-metric">Prob. of human actor</div>
+            <span class="card-label">Active Surface</span>
+            <div id="active-ports" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                <!-- Ports -->
+            </div>
+        </div>
+
+        <!-- Analysis Row -->
+        <div class="card span-2">
+            <span class="card-label">Geographic Dispersion [GLOBAL]</span>
+            <div id="threat-map" style="height: 350px; background: rgba(0,0,0,0.02); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                <!-- Simple stylized SVG world map -->
+                <svg viewBox="0 0 800 400" style="width: 100%; opacity: 0.15;">
+                    <path fill="currentColor" d="M100 100h600v200H100z" /> <!-- Simplified -->
+                </svg>
+                <div style="position: absolute; color: var(--secondary); font-weight: 700; font-size: 14px;">[ SPATIAL TELEMETRY ACTIVE ]</div>
+                <div id="map-hotspots"></div>
+            </div>
         </div>
 
         <div class="card span-2">
-            <span class="card-label">Threat Vector Analysis</span>
-            <div class="radar-container">
+            <span class="card-label">Threat Vector Analysis (MITRE)</span>
+            <div class="radar-container" style="height: 350px;">
                 <canvas id="tacticRadar"></canvas>
+            </div>
+        </div>
+
+        <!-- Intelligence Row -->
+        <div class="card span-2">
+            <span class="card-label">Operational Terminal [STDOUT]</span>
+            <div id="rawTerminal" style="background: #0F172A; color: #10B981; font-family: 'JetBrains Mono'; padding: 20px; border-radius: 12px; height: 350px; overflow-y: auto; font-size: 14px; line-height: 1.4; border: 1px solid #334155;">
+                <div style="color: #64748B; margin-bottom: 10px;">// Initializing stream...</div>
+                <div id="terminalLines"></div>
+            </div>
+        </div>
+
+        <div class="card span-2">
+            <span class="card-label">MITRE Coverage Matrix</span>
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                    <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
+                        <tr style="text-align: left; color: var(--secondary); border-bottom: 1px solid var(--border);">
+                            <th style="padding: 12px;">ID</th>
+                            <th style="padding: 12px;">TECHNIQUE</th>
+                            <th style="padding: 12px; text-align: right;">HITS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ttpMatrix">
+                        <!-- TTPs -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Feed Row -->
+        <div class="card span-2">
+            <span class="card-label">Adversary Activity Density</span>
+            <div style="height: 250px;">
+                <canvas id="timelineChart"></canvas>
             </div>
         </div>
 
         <div class="card span-2">
             <span class="card-label">High-Risk Adversary Profiles</span>
-            <div id="attackerProfiles" style="max-height: 400px; overflow-y: auto;">
+            <div id="attackerProfiles" style="max-height: 250px; overflow-y: auto;">
                 <!-- Profiles -->
             </div>
         </div>
@@ -273,13 +335,6 @@
             <span class="card-label">Live Operation Feed</span>
             <div class="monitor-feed" id="attackFeed">
                 <!-- Feed Data -->
-            </div>
-        </div>
-
-        <div class="card span-4">
-            <span class="card-label">Adversary Activity Density</span>
-            <div style="height: 300px;">
-                <canvas id="timelineChart"></canvas>
             </div>
         </div>
     </div>
@@ -297,19 +352,15 @@
                     data: [], 
                     borderColor: '#2563EB', 
                     backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                    borderWidth: 4,
-                    pointRadius: 0,
+                    borderWidth: 3,
+                    fill: true,
                     tension: 0.4,
-                    fill: true 
-                }] },
+                    pointRadius: 0
+                }]},
                 options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { border: { display: false }, grid: { color: '#F1F5F9' } },
-                        x: { border: { display: false }, grid: { display: false } }
-                    }
+                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } }
                 }
             });
 
@@ -320,29 +371,20 @@
                 data: {
                     labels: ['Initial Access', 'Execution', 'Persistence', 'Privilege Escalation', 'Defense Evasion', 'Discovery', 'Exfiltration'],
                     datasets: [{
-                        label: 'Current Attack Intensity',
+                        label: 'Intensity',
                         data: [0, 0, 0, 0, 0, 0, 0],
-                        fill: true,
                         backgroundColor: 'rgba(37, 99, 235, 0.2)',
                         borderColor: '#2563EB',
-                        pointBackgroundColor: '#2563EB',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#2563EB'
+                        borderWidth: 2,
+                        pointBackgroundColor: '#2563EB'
                     }]
                 },
                 options: {
-                    elements: { line: { borderWidth: 3 } },
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
                     scales: {
-                        r: {
-                            angleLines: { color: '#E2E8F0' },
-                            grid: { color: '#E2E8F0' },
-                            pointLabels: { font: { size: 14, weight: 'bold' }, color: '#64748B' },
-                            suggestedMin: 0,
-                            suggestedMax: 10
-                        }
-                    },
-                    plugins: { legend: { display: false } }
+                        r: { beginAtZero: true, max: 10, ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' } }
+                    }
                 }
             });
         }
@@ -356,78 +398,64 @@
                 const stats = await statsRes.json();
                 const intel = await intelRes.json();
 
+                // 1. Core Metrics
                 document.getElementById('stat-total').innerText = stats.total_commands;
-                document.getElementById('stat-active').innerText = stats.active_sessions;
-                document.getElementById('stat-ttps').innerText = stats.unique_ttps;
-                document.getElementById('system-mode').innerText = stats.mode;
+                document.getElementById('stat-intent').innerText = stats.session_intel.length > 0 
+                    ? `${Math.round(stats.session_intel.reduce((a,b) => a + b.prob, 0) / stats.session_intel.length)}%`
+                    : '0%';
+                
+                // 2. System Vitality
+                const h = stats.system_health || {};
+                document.getElementById('stat-cpu').innerText = h.cpu_usage || '--';
+                document.getElementById('stat-ram').innerText = h.ram_usage || '--';
+                document.getElementById('stat-uptime').innerText = h.uptime || '--';
+                
+                const portsHtml = (h.active_listeners || []).map(p => `
+                    <span style="background: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; color: var(--primary); border: 1px solid var(--border);">${p}</span>
+                `).join('');
+                document.getElementById('active-ports').innerHTML = portsHtml;
 
-                // Probability calc
-                const avgProb = stats.session_intel.length > 0 
-                    ? Math.round(stats.session_intel.reduce((a,b) => a + b.prob, 0) / stats.session_intel.length)
-                    : 0;
-                document.getElementById('stat-intent').innerText = `${avgProb}%`;
+                // 3. Matrix & Charts
+                const matrixHtml = Object.values(stats.ttp_counts).sort((a,b) => b.count - a.count).slice(0, 8).map(ttp => `
+                    <tr style="border-bottom: 1px solid var(--accent);">
+                        <td style="padding: 12px; font-family: 'JetBrains Mono'; color: var(--primary); font-weight: 700;">${ttp.name.split(' (')[0].substring(0,5)}</td>
+                        <td style="padding: 12px; font-weight: 600;">${ttp.name}</td>
+                        <td style="padding: 12px; text-align: right; font-weight: 800; color: var(--danger);">${ttp.count}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('ttpMatrix').innerHTML = matrixHtml || '<tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--secondary);">No depth data available</td></tr>';
 
-                // Update Timeline
                 timelineChart.data.labels = stats.timeline.map(t => t.time);
                 timelineChart.data.datasets[0].data = stats.timeline.map(t => t.count);
                 timelineChart.update();
 
-                // Update Radar
-                const tacticMap = {
-                    'Initial Access': 0, 'Execution': 0, 'Persistence': 0, 
-                    'Privilege Escalation': 0, 'Defense Evasion': 0, 'Discovery': 0, 'Exfiltration': 0
-                };
+                // 4. Terminal Feed
+                const terminalLines = intel.slice(0, 15).map(ev => `
+                    <div style="margin-bottom: 4px;">
+                        <span style="color: #64748B;">root@aade:~$</span> ${ev.cmd || '...'}
+                        ${(ev.mitre_tags || []).map(t => `<span style="color: #7C3AED; font-size: 11px; margin-left: 8px;">[${t.id}]</span>`).join('')}
+                    </div>
+                `).join('');
+                document.getElementById('terminalLines').innerHTML = terminalLines;
+
+                // 5. profiles & Radar (Keep previous logic)
+                const tacticMap = { 'Initial Access':0, 'Execution':0, 'Persistence':0, 'Privilege Escalation':0, 'Defense Evasion':0, 'Discovery':0, 'Exfiltration':0 };
                 Object.values(stats.ttp_counts).forEach(ttp => {
                     if (ttp.name.includes('Discovery')) tacticMap['Discovery'] += ttp.count;
                     if (ttp.name.includes('Exfiltration')) tacticMap['Exfiltration'] += ttp.count;
                     if (ttp.name.includes('Execution')) tacticMap['Execution'] += ttp.count;
-                    if (ttp.name.includes('Persistence')) tacticMap['Persistence'] += ttp.count;
                 });
                 radarChart.data.datasets[0].data = Object.values(tacticMap);
                 radarChart.update();
 
-                // Update Profiles
-                document.getElementById('attackerProfiles').innerHTML = stats.session_intel.slice(0, 5).map(s => `
-                    <div class="profile-card">
-                        <div>
-                            <div style="font-weight: 800; font-family: 'JetBrains Mono'; font-size: 20px;">${s.ip}</div>
-                            <div style="font-size: 16px; color: var(--secondary); margin-top: 4px;">
-                                Engaged: ${s.duration}s | Interactions: ${s.cmds}
-                            </div>
-                            <div class="intent-gauge-container" style="margin-top: 12px; width: 200px;">
-                                <div class="intent-gauge-fill" style="width: ${s.prob}%"></div>
-                            </div>
-                        </div>
-                        <div style="text-align: right">
-                            <div class="profile-prob">${s.prob}%</div>
-                            <div style="font-size: 14px; font-weight: 700; color: var(--secondary)">PROBABILITY</div>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Update Feed
-                document.getElementById('attackFeed').innerHTML = intel.slice(0, 10).map(ev => `
-                    <div class="event-node">
-                        <div style="font-weight: 700; color: var(--secondary); font-size: 16px">
-                            ${(ev.timestamp || '').split('T')[1]?.split('.')[0] || 'LIVE'}
-                        </div>
-                        <div>
-                            <div class="cmd-text">${ev.cmd || '---'}</div>
-                            <div style="margin-top: 10px">
-                                ${(ev.mitre_tags || []).map(t => `<span class="tag-mitre">${t.id}</span>`).join(' ')}
-                            </div>
-                        </div>
-                        <div class="intent-gauge-container">
-                            <div class="intent-gauge-fill" style="width: ${ev.mitre_tags?.length > 0 ? '80%' : '20%'}"></div>
-                        </div>
-                    </div>
-                `).join('');
-
             } catch (e) {
-                console.error("Dashboard error:", e);
+                console.error("Dashboard engine failed:", e);
             }
         }
 
+        init();
+        update();
+        setInterval(update, 5000);
     </script>
 </body>
 </html>

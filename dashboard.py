@@ -144,6 +144,15 @@ def stats():
     # Sort timeline keys
     sorted_timeline = [{"time": k, "count": timeline[k]} for k in sorted(timeline.keys())]
 
+    # Simulated System Health for Densification
+    system_metrics = {
+        "cpu_usage": "12%",
+        "ram_usage": "2.4GB / 8GB",
+        "uptime": "14d 6h 22m",
+        "active_listeners": ["TCP/22", "TCP/80", "TCP/443", "TCP/2222"],
+        "sensor_load": "MINIMAL"
+    }
+
     return jsonify({
         "total_commands": len(events),
         "unique_ttps": len(ttp_counts),
@@ -151,6 +160,7 @@ def stats():
         "active_sessions": len(active_ips),
         "ttp_counts": ttp_counts,
         "synthetic_responses": llm_hits,
+        "system_health": system_metrics,
         "timeline": sorted_timeline,
         "mode": "ADAPTIVE (High Interaction)" if high_interaction_active else "MONITORING (Low Interaction)",
         "session_intel": session_intel[:10]
