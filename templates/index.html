@@ -164,51 +164,124 @@
             transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .cmd-text {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--accent);
-            padding: 8px 14px;
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 16px;
-            border: 1px solid rgba(0,0,0,0.05);
-            display: inline-block;
-        }
-
-        .tag-mitre {
-            background: #EDE9FE;
-            color: #7C3AED;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 700;
-            border: 1px solid #DDD6FE;
-        }
-
         .radar-container {
-            height: 400px;
+            height: 350px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .profile-card {
+        /* Map Styling */
+        .map-container {
+            height: 350px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--danger);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            70% { transform: scale(3); opacity: 0; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .strategy-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .strategy-status {
+            padding: 12px 20px;
+            background: #F1F5F9;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .directive-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .directive-item {
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .directive-item::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .stealth-bar-container {
+            margin-top: 10px;
+            height: 12px;
+            background: #E2E8F0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .stealth-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #34D399);
+            transition: width 0.5s ease;
+        }
+
+        .profile-card {
             padding: 24px;
             background: var(--surface);
             border-radius: 16px;
             margin-bottom: 16px;
             border: 1px solid var(--border);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
         }
 
-        .profile-prob {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--danger);
+        .profile-card:hover { border-color: var(--primary); }
+
+        .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .profile-ip { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--text-main); font-size: 18px; }
+        .profile-risk { font-weight: 800; color: var(--danger); font-size: 14px; text-transform: uppercase; }
+        
+        .profile-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
+        .profile-label { color: var(--secondary); font-weight: 600; }
+        .profile-val { color: var(--text-main); font-weight: 700; }
+
+        .profile-persona {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: var(--accent);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+            text-align: center;
         }
 
         ::-webkit-scrollbar { width: 8px; }
@@ -224,89 +297,121 @@
         </div>
         <div style="display: flex; gap: 16px;">
             <div class="status-pill">
-                <div class="status-dot dot-pulse"></div>
-                <span>Decoy Active</span>
+                <div class="status-dot dot-pulse" id="honeypot-signal"></div>
+                <span>HONEYPOT ACTIVE</span>
             </div>
             <div class="status-pill">
-                <span id="risk-level" style="color: var(--danger)">RISK: MINIMAL</span>
+                <div class="status-dot" id="microvm-signal"></div>
+                <span>MICROVM ACTIVE</span>
+            </div>
+            <div class="status-pill" style="background: var(--bg); border: 1px solid var(--border);">
+                <span id="risk-level" style="color: var(--danger); font-weight: 800;">RISK: MINIMAL</span>
             </div>
         </div>
     </header>
 
-    <div class="grid">
-        <!-- New Metrics Row -->
-        <div class="card">
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+        <div class="card" style="padding: 20px;">
+            <span class="card-label">TOTAL ATTACKS</span>
+            <div id="stat-attacks" style="font-size: 32px; font-weight: 900; color: var(--primary); margin-top: 5px;">0</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+            <span class="card-label">ACTIVE SESSIONS</span>
+            <div id="stat-sessions" style="font-size: 32px; font-weight: 900; color: #10B981; margin-top: 5px;">0</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+            <span class="card-label">UNIQUE IPS</span>
+            <div id="stat-ips" style="font-size: 32px; font-weight: 900; color: #3B82F6; margin-top: 5px;">0</div>
+        </div>
+        <div class="card" style="padding: 20px;">
+            <span class="card-label">GHOST RESPONSES</span>
+            <div id="stat-ghost" style="font-size: 32px; font-weight: 900; color: #8B5CF6; margin-top: 5px;">0</div>
+        </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+        <!-- Core Telemetry Row -->
+        <div class="card" style="padding: 20px;">
             <span class="card-label">System Vitality</span>
-            <div id="system-vitality" style="margin-top: 10px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: var(--secondary)">CPU</span>
-                    <span id="stat-cpu" style="font-weight: 700;">--</span>
+            <div id="system-vitality" style="margin-top: 5px; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="color: var(--secondary)">CPU / RAM</span>
+                    <span style="font-weight: 700;"><span id="stat-cpu">--</span> / <span id="stat-ram">--</span></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: var(--secondary)">RAM</span>
-                    <span id="stat-ram" style="font-weight: 700;">--</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                     <span style="color: var(--secondary)">UPTIME</span>
                     <span id="stat-uptime" style="font-weight: 700;">--</span>
                 </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--secondary)">LOAD</span>
+                    <span id="stat-load" style="font-weight: 700; color: var(--success);">OPTIMAL</span>
+                </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" style="padding: 20px;">
             <span class="card-label">Threat Velocity</span>
-            <div class="metric" id="stat-total" style="font-size: 48px;">0</div>
-            <div class="sub-metric">Captured total events</div>
+            <div id="stat-total" style="font-size: 32px; font-weight: 900; color: #2563EB; margin-top: 5px;">0</div>
+            <div style="font-size: 13px; color: var(--secondary); font-weight: 600;">Events / 15m</div>
         </div>
-        <div class="card">
+        <div class="card" style="padding: 20px;">
             <span class="card-label">Adversary Intent</span>
-            <div class="metric" id="stat-intent" style="font-size: 48px;">0%</div>
-            <div class="sub-metric">Human Probability</div>
+            <div id="stat-intent" style="font-size: 32px; font-weight: 900; color: #3B82F6; margin-top: 5px;">0%</div>
+            <div style="font-size: 13px; color: var(--secondary); font-weight: 600;">Human Probability</div>
         </div>
-        <div class="card">
-            <span class="card-label">Active Surface</span>
-            <div id="active-ports" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                <!-- Ports -->
-            </div>
+        <div class="card" style="padding: 20px;">
+            <span class="card-label">Deception Fidelity</span>
+            <div id="stat-fidelity" style="font-size: 32px; font-weight: 900; color: #10B981; margin-top: 5px;">98%</div>
+            <div style="font-size: 13px; color: var(--secondary); font-weight: 600;">Trust Coefficient</div>
         </div>
+    </div>
 
-        <!-- Analysis Row -->
+    <div class="grid">
+        <!-- Geographic Coverage -->
         <div class="card span-2">
-            <span class="card-label">Geographic Dispersion [GLOBAL]</span>
-            <div id="threat-map" style="height: 350px; background: rgba(0,0,0,0.02); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                <!-- Simple stylized SVG world map -->
-                <svg viewBox="0 0 800 400" style="width: 100%; opacity: 0.15;">
-                    <path fill="currentColor" d="M100 100h600v200H100z" /> <!-- Simplified -->
+            <span class="card-label">Geographic Dispersion [MAP]</span>
+            <div class="map-container" id="threatMap">
+                <svg viewBox="0 0 800 400" style="width: 100%; opacity: 0.1;">
+                    <path fill="currentColor" d="M100 100h600v200H100z" />
                 </svg>
-                <div style="position: absolute; color: var(--secondary); font-weight: 700; font-size: 14px;">[ SPATIAL TELEMETRY ACTIVE ]</div>
-                <div id="map-hotspots"></div>
+                <div id="mapHotspots"></div>
+                <div style="position: absolute; bottom: 20px; right: 20px; font-family: 'JetBrains Mono'; font-size: 14px; color: var(--secondary)">[ SPATIAL SENSORS ACTIVE ]</div>
             </div>
         </div>
 
+        <!-- Attack Density -->
         <div class="card span-2">
-            <span class="card-label">Threat Vector Analysis (MITRE)</span>
-            <div class="radar-container" style="height: 350px;">
+            <span class="card-label">Attack Timeline (24h Activity)</span>
+            <div style="height: 350px;">
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Requirement 4: Vector Distribution -->
+        <div class="card span-2">
+            <span class="card-label">Vector Distribution [TACTICAL MIX]</span>
+            <div class="distribution-container">
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Requirement 3: Top MITRE Detection Vectors -->
+        <div class="card span-2">
+            <span class="card-label">Top MITRE Detection Vectors (Radar)</span>
+            <div class="radar-container">
                 <canvas id="tacticRadar"></canvas>
             </div>
         </div>
 
-        <!-- Intelligence Row -->
+        <!-- Analysis & Intelligence -->
         <div class="card span-2">
-            <span class="card-label">Operational Terminal [STDOUT]</span>
-            <div id="rawTerminal" style="background: #0F172A; color: #10B981; font-family: 'JetBrains Mono'; padding: 20px; border-radius: 12px; height: 350px; overflow-y: auto; font-size: 14px; line-height: 1.4; border: 1px solid #334155;">
-                <div style="color: #64748B; margin-bottom: 10px;">// Initializing stream...</div>
-                <div id="terminalLines"></div>
-            </div>
-        </div>
-
-        <div class="card span-2">
-            <span class="card-label">MITRE Coverage Matrix</span>
-            <div style="max-height: 350px; overflow-y: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <span class="card-label">MITRE Technique Matrix</span>
+            <div style="max-height: 480px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
                     <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
                         <tr style="text-align: left; color: var(--secondary); border-bottom: 1px solid var(--border);">
-                            <th style="padding: 12px;">ID</th>
-                            <th style="padding: 12px;">TECHNIQUE</th>
-                            <th style="padding: 12px; text-align: right;">HITS</th>
+                            <th style="padding: 16px;">ID</th>
+                            <th style="padding: 16px;">TECHNIQUE</th>
+                            <th style="padding: 16px; text-align: right;">HITS</th>
                         </tr>
                     </thead>
                     <tbody id="ttpMatrix">
@@ -316,60 +421,83 @@
             </div>
         </div>
 
-        <!-- Feed Row -->
         <div class="card span-2">
-            <span class="card-label">Adversary Activity Density</span>
-            <div style="height: 250px;">
-                <canvas id="timelineChart"></canvas>
-            </div>
-        </div>
-
-        <div class="card span-2">
-            <span class="card-label">High-Risk Adversary Profiles</span>
-            <div id="attackerProfiles" style="max-height: 250px; overflow-y: auto;">
+            <span class="card-label">Active Adversary Profiles</span>
+            <div id="attackerProfiles" style="max-height: 480px; overflow-y: auto; padding-right: 8px;">
                 <!-- Profiles -->
             </div>
         </div>
 
+        <div class="card span-2">
+            <span class="card-label">Active Surface [PORTS]</span>
+            <div id="active-ports" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
+                <!-- Ports -->
+            </div>
+        </div>
+
+        <div class="card span-2">
+            <span class="card-label">Tactical Response Strategy [RL ENGINE]</span>
+            <div class="strategy-container">
+                <div class="strategy-status" id="strategyStatus">
+                    <div style="font-size: 13px; color: var(--secondary)">CURRENT ENGINE STATE:</div>
+                    <div id="rlState" style="font-weight: 800; font-size: 18px; color: var(--primary)">CALIBRATING...</div>
+                </div>
+                <div id="directiveList" class="directive-list">
+                    <!-- Directives -->
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700;">
+                        <span>STEALTH INTEGRITY</span>
+                        <span id="stealthScore">94%</span>
+                    </div>
+                    <div class="stealth-bar-container">
+                        <div class="stealth-bar-fill" id="stealthBar" style="width: 94%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Operations Feed -->
         <div class="card span-4">
-            <span class="card-label">Live Operation Feed</span>
-            <div class="monitor-feed" id="attackFeed">
-                <!-- Feed Data -->
+            <span class="card-label">Live Operation / Attack Feed [STDOUT]</span>
+            <div id="operational-terminal" style="background: #0F172A; color: #10B981; font-family: 'JetBrains Mono'; padding: 32px; border-radius: 16px; height: 400px; overflow-y: auto; font-size: 15px; line-height: 1.6; border: 1px solid #334155; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.5);">
+                <div id="terminalLines"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let timelineChart, radarChart;
+        let timelineChart, radarChart, distributionChart;
 
         function init() {
-            // Timeline Chart
+            // Requirement 2: Attack Timeline
             const ctxT = document.getElementById('timelineChart').getContext('2d');
             timelineChart = new Chart(ctxT, {
                 type: 'line',
                 data: { labels: [], datasets: [{ 
-                    label: 'Intelligence Density', 
+                    label: 'Activity Density', 
                     data: [], 
                     borderColor: '#2563EB', 
                     backgroundColor: 'rgba(37, 99, 235, 0.05)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 0
+                    pointRadius: 2,
+                    pointBackgroundColor: '#2563EB'
                 }]},
                 options: { 
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } }
                 }
             });
 
-            // Radar Chart
+            // Requirement 3: Radar Chart
             const ctxR = document.getElementById('tacticRadar').getContext('2d');
             radarChart = new Chart(ctxR, {
                 type: 'radar',
                 data: {
-                    labels: ['Initial Access', 'Execution', 'Persistence', 'Privilege Escalation', 'Defense Evasion', 'Discovery', 'Exfiltration'],
+                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Impact', 'Collection'],
                     datasets: [{
                         label: 'Intensity',
                         data: [0, 0, 0, 0, 0, 0, 0],
@@ -383,8 +511,28 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        r: { beginAtZero: true, max: 10, ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' } }
+                        r: { beginAtZero: true, max: 20, ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' } }
                     }
+                }
+            });
+
+            // Requirement 4: Vector Distribution Chart
+            const ctxD = document.getElementById('distributionChart').getContext('2d');
+            distributionChart = new Chart(ctxD, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Impact', 'Collection'],
+                    datasets: [{
+                        data: [0,0,0,0,0,0,0],
+                        backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'right', labels: { padding: 20, font: { weight: 'bold' } } } }
                 }
             });
         }
@@ -398,58 +546,136 @@
                 const stats = await statsRes.json();
                 const intel = await intelRes.json();
 
-                // 1. Core Metrics
+                // Primary Metrics Row
+                document.getElementById('stat-attacks').innerText = stats.total_attacks || 0;
+                document.getElementById('stat-sessions').innerText = stats.active_sessions || 0;
+                document.getElementById('stat-ips').innerText = stats.unique_ips || 0;
+                document.getElementById('stat-ghost').innerText = stats.ghost_responses || 0;
+
+                // Status Signals
+                const honeyDot = document.getElementById('honeypot-signal');
+                const vmDot = document.getElementById('microvm-signal');
+                if (stats.honeypot_active) honeyDot.classList.add('dot-pulse');
+                else honeyDot.classList.remove('dot-pulse');
+                
+                if (stats.microvm_active) vmDot.classList.add('dot-pulse');
+                else vmDot.classList.remove('dot-pulse');
+
+                // Core Metrics
                 document.getElementById('stat-total').innerText = stats.total_commands;
                 document.getElementById('stat-intent').innerText = stats.session_intel.length > 0 
                     ? `${Math.round(stats.session_intel.reduce((a,b) => a + b.prob, 0) / stats.session_intel.length)}%`
                     : '0%';
                 
-                // 2. System Vitality
+                // System Vitality
                 const h = stats.system_health || {};
                 document.getElementById('stat-cpu').innerText = h.cpu_usage || '--';
                 document.getElementById('stat-ram').innerText = h.ram_usage || '--';
                 document.getElementById('stat-uptime').innerText = h.uptime || '--';
+                document.getElementById('stat-load').innerText = h.sensor_load || 'OPTIMAL';
                 
                 const portsHtml = (h.active_listeners || []).map(p => `
                     <span style="background: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; color: var(--primary); border: 1px solid var(--border);">${p}</span>
                 `).join('');
                 document.getElementById('active-ports').innerHTML = portsHtml;
+                
+                // Deception Fidelity
+                document.getElementById('stat-fidelity').innerText = `${stats.deception_strategy?.stealth_health || 98}%`;
 
-                // 3. Matrix & Charts
-                const matrixHtml = Object.values(stats.ttp_counts).sort((a,b) => b.count - a.count).slice(0, 8).map(ttp => `
+                // Geographic Dispersion Map
+                const hotspots = document.getElementById('mapHotspots');
+                hotspots.innerHTML = '';
+                stats.session_intel.forEach(profile => {
+                    const dot = document.createElement('div');
+                    dot.className = 'map-dot';
+                    dot.style.left = `${20 + Math.random() * 60}%`;
+                    dot.style.top = `${20 + Math.random() * 60}%`;
+                    hotspots.appendChild(dot);
+                });
+
+                // Requirement 2: Timeline
+                timelineChart.data.labels = stats.timeline.map(t => t.time);
+                timelineChart.data.datasets[0].data = stats.timeline.map(t => t.count);
+                timelineChart.update();
+
+                // Requirement 4: Vector Distribution
+                const dist = stats.vector_distribution || {};
+                distributionChart.data.datasets[0].data = [
+                    dist["Reconnaissance"] || 0,
+                    dist["Initial Access"] || 0,
+                    dist["Execution"] || 0,
+                    dist["Persistence"] || 0,
+                    dist["Defense Evasion"] || 0,
+                    dist["Impact"] || 0,
+                    dist["Collection"] || 0
+                ];
+                distributionChart.update();
+
+                // Requirement 3: Top MITRE Radar & Matrix
+                radarChart.data.datasets[0].data = distributionChart.data.datasets[0].data;
+                radarChart.update();
+
+                const matrixHtml = Object.values(stats.ttp_counts).sort((a,b) => b.count - a.count).slice(0, 10).map(ttp => `
                     <tr style="border-bottom: 1px solid var(--accent);">
                         <td style="padding: 12px; font-family: 'JetBrains Mono'; color: var(--primary); font-weight: 700;">${ttp.name.split(' (')[0].substring(0,5)}</td>
                         <td style="padding: 12px; font-weight: 600;">${ttp.name}</td>
                         <td style="padding: 12px; text-align: right; font-weight: 800; color: var(--danger);">${ttp.count}</td>
                     </tr>
                 `).join('');
-                document.getElementById('ttpMatrix').innerHTML = matrixHtml || '<tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--secondary);">No depth data available</td></tr>';
+                document.getElementById('ttpMatrix').innerHTML = matrixHtml;
 
-                timelineChart.data.labels = stats.timeline.map(t => t.time);
-                timelineChart.data.datasets[0].data = stats.timeline.map(t => t.count);
-                timelineChart.update();
+                // Requirement 5: Active Profiles
+                const profilesHtml = stats.session_intel.map(profile => `
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <span class="profile-ip">${profile.ip}</span>
+                            <span class="profile-risk">RISK: ${profile.prob}%</span>
+                        </div>
+                        <div class="profile-body">
+                            <div><span class="profile-label">Commands:</span> <span class="profile-val">${profile.cmds}</span></div>
+                            <div><span class="profile-label">Yield:</span> <span class="profile-val">${profile.ttp_count} TTPs</span></div>
+                            <div><span class="profile-label">Duration:</span> <span class="profile-val">${profile.duration}</span></div>
+                            <div><span class="profile-label">Status:</span> <span class="profile-val" style="color: var(--success)">TRAPPED</span></div>
+                        </div>
+                        <div class="profile-persona">${profile.persona}</div>
+                    </div>
+                `).join('');
+                document.getElementById('attackerProfiles').innerHTML = profilesHtml || '<div style="color: var(--secondary); text-align: center; padding: 40px;">No active profiles detected</div>';
 
-                // 4. Terminal Feed
-                const terminalLines = intel.slice(0, 15).map(ev => `
-                    <div style="margin-bottom: 4px;">
-                        <span style="color: #64748B;">root@aade:~$</span> ${ev.cmd || '...'}
-                        ${(ev.mitre_tags || []).map(t => `<span style="color: #7C3AED; font-size: 11px; margin-left: 8px;">[${t.id}]</span>`).join('')}
+                // Requirement 6: Tactical Strategy (Replaces Event Stream)
+                const strat = stats.deception_strategy || {};
+                document.getElementById('rlState').innerText = strat.rl_state || 'CALIBRATING...';
+                document.getElementById('stealthScore').innerText = `${strat.stealth_health}%`;
+                document.getElementById('stealthBar').style.width = `${strat.stealth_health}%`;
+                
+                const directiveHtml = (strat.directives || []).map(d => `
+                    <li class="directive-item">${d}</li>
+                `).join('');
+                document.getElementById('directiveList').innerHTML = directiveHtml || '<div style="color:var(--secondary)">No active directives</div>';
+
+                // Requirement 1: Live Attack Feed
+                const terminalLines = intel.slice(0, 20).map(ev => `
+                    <div style="margin-bottom: 6px;">
+                        <span style="color: #64748B;">[${ev.timestamp?.split('T')[1].substring(0,8) || '--:--:--'}]</span>
+                        <span style="color: #64748B;"> root@aade:~$</span> ${ev.cmd || '...'}
+                        ${(ev.mitre_tags || []).map(t => `<span style="color: #7C3AED; font-size: 11px; font-weight: 700; margin-left: 8px;">[${t.id}]</span>`).join('')}
                     </div>
                 `).join('');
                 document.getElementById('terminalLines').innerHTML = terminalLines;
 
-                // 5. profiles & Radar (Keep previous logic)
-                const tacticMap = { 'Initial Access':0, 'Execution':0, 'Persistence':0, 'Privilege Escalation':0, 'Defense Evasion':0, 'Discovery':0, 'Exfiltration':0 };
-                Object.values(stats.ttp_counts).forEach(ttp => {
-                    if (ttp.name.includes('Discovery')) tacticMap['Discovery'] += ttp.count;
-                    if (ttp.name.includes('Exfiltration')) tacticMap['Exfiltration'] += ttp.count;
-                    if (ttp.name.includes('Execution')) tacticMap['Execution'] += ttp.count;
-                });
-                radarChart.data.datasets[0].data = Object.values(tacticMap);
-                radarChart.update();
+                // Dynamic Status
+                document.getElementById('system-mode').innerText = stats.mode;
+                const riskPill = document.getElementById('risk-level');
+                if (stats.active_sessions > 0) {
+                    riskPill.innerText = `RISK: ${stats.active_sessions > 2 ? 'CRITICAL' : 'ELEVATED'}`;
+                    riskPill.style.color = 'var(--danger)';
+                } else {
+                    riskPill.innerText = 'RISK: MINIMAL';
+                    riskPill.style.color = 'var(--success)';
+                }
 
             } catch (e) {
-                console.error("Dashboard engine failed:", e);
+                console.error("Critical Dashboard Failure:", e);
             }
         }
 
