@@ -70,19 +70,24 @@ class RLAgent:
     def __init__(self, model_path="aade_agent.zip"):
         self.model = None
         if os.path.exists(model_path):
-            self.model = PPO.load(model_path)
-            print(f"[*] RL: Loaded agent from {model_path}")
+            try:
+                self.model = PPO.load(model_path)
+                print(f"[*] RL: Loaded PPO agent from {model_path}")
+            except Exception as e:
+                print(f"[!] RL: Error loading model: {e}")
         else:
-            print("[!] RL: Model not found. Using default logic fallback.")
+            print("[!] RL: aade_agent.zip not found. Falling back to Heuristic Deception Engine.")
 
-    def decide(self, num_cmds, max_ttp, duration, risk):
+    def decide(self, num_cmds, max_ttp_sev, duration, risk_score, human_prob=0):
         if not self.model:
-            # Fallback to rule-based logic
-            if max_ttp > 2 or risk > 50:
-                return 1 # Escalate
-            return 0 # Stay
+            # Enhanced Heuristic fallback
+            if (human_prob > 65) or (max_ttp_sev > 15) or (risk_score > 60):
+                return 1 # ESCALATE
+            if risk_score > 90:
+                return 2 # TERMINATE
+            return 0 # STAY
             
-        obs = np.array([num_cmds, max_ttp, duration, risk], dtype=np.float32)
+        obs = np.array([num_cmds, max_ttp_sev, duration, risk_score], dtype=np.float32)
         action, _states = self.model.predict(obs)
         return action
 

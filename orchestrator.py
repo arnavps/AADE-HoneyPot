@@ -7,6 +7,7 @@ import tailer
 import requests
 from rl_orchestrator import RLAgent
 from ttp_mapper import map_command_to_ttpx
+from llm_synthesizer import LLMSynthesizer
 
 COWRIE_LOG = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
 KERNEL_PATH = os.path.expanduser('~/aade/kernels/vmlinux.bin')
@@ -17,17 +18,41 @@ class MasterOrchestrator:
     def __init__(self):
         print("[*] AADE Master Orchestrator: Initializing Advanced Logic...")
         self.rl_agent = RLAgent("aade_agent.zip")
+        self.llm = LLMSynthesizer(provider="ollama")
         self.session_start = time.time()
         self.cmd_count = 0
         self.max_ttp_severity = 0
         self.risk_score = 0
+        self.human_probability = 0
+        self.detected_ttps = set()
         self.vm_proc = None
 
-    def calculate_risk(self, cmd_count, ttp_list):
-        # Weighted risk calculation
-        severity_weight = len(ttp_list) * 20
-        risk = (cmd_count * 2) + severity_weight
-        return min(risk, 100)
+    def calculate_metrics(self, cmd_count, ttp_list):
+        # 1. Update TTP Set and Severity
+        for t in ttp_list:
+            self.detected_ttps.add(t['id'])
+            # Increase local severity tracking
+            self.max_ttp_severity += 10 if t['id'] in ['T1059', 'T1003', 'T1070'] else 5
+
+        # 2. Risk Calculation (0-100)
+        risk = (cmd_count * 2) + (len(self.detected_ttps) * 15)
+        self.risk_score = min(risk, 100)
+
+        # 3. Human Probability Formula (Mirroring Dashboard)
+        high_weight_ttps = {'T1070', 'T1611', 'T1048', 'T1486', 'T1053.003'}
+        weight = len(self.detected_ttps & high_weight_ttps) * 35
+        weight += len(self.detected_ttps) * 10
+        weight += min(cmd_count // 2, 25)
+        self.human_probability = min(weight, 100)
+
+    def inject_decoy_artifacts(self):
+        """ Triggers LLM synthesis to 'salt' the deception environment """
+        print("[*] LLM: Generating unique session artifacts...")
+        decoys = self.llm.generate_decoy_files(persona="Financial Database Server")
+        
+        # Real-world logic: mount rootfs and write files
+        for d in decoys:
+            print(f"[+] Artifact Injected: {d['path']} (Size: {len(d['content'])} bytes)")
 
     def start_firecracker(self):
         if self.vm_proc:
@@ -73,15 +98,21 @@ class MasterOrchestrator:
                         print(f"[!] TTP Detected: {ttps[0]['name']} ({ttps[0]['id']})")
                         self.max_ttp_severity += 5 
                     
-                    # 2. Update Risk State
-                    self.risk_score = self.calculate_risk(self.cmd_count, ttps)
+                    # 2. Update Intelligence State
+                    self.calculate_metrics(self.cmd_count, ttps)
                     duration = time.time() - self.session_start
                     
                     # 3. RL AGENT DECISION
-                    action = self.rl_agent.decide(self.cmd_count, self.max_ttp_severity, duration, self.risk_score)
+                    action = self.rl_agent.decide(
+                        self.cmd_count, 
+                        self.max_ttp_severity, 
+                        duration, 
+                        self.risk_score, 
+                        human_prob=self.human_probability
+                    )
                     
                     if action == 1: # ESCALATE
-                        print(f"[*] RL ACTION: ESCALATE (Risk: {self.risk_score})")
+                        print(f"[*] RL ACTION: ESCALATE (Human Prob: {self.human_probability}%)")
                         self.start_firecracker()
                     elif action == 2: # TERMINATE
                         print(f"[*] RL ACTION: TERMINATE (Risk: {self.risk_score})")

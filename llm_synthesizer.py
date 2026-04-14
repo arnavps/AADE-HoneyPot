@@ -60,7 +60,31 @@ class LLMSynthesizer:
         except Exception as e:
             return f"error: {e}"
 
+    def generate_decoy_files(self, persona="Financial Database Server"):
+        """
+        Generates a list of plausible high-value files to populate the rootfs.
+        Returns a list of dicts: [{'path': '/root/passcodes.txt', 'content': '...'}]
+        """
+        prompt = f"""
+        Act as a data leak researcher. Generate 5 filenames and high-fidelity content for a {persona}.
+        File types should include .sql, .conf, .txt, and .key.
+        Return ONLY a JSON array of objects with "path" and "content" fields.
+        """
+        print(f"[*] LLM: Generating decoy artifacts for persona: {persona}")
+        
+        # In a real run, this calls _call_ollama and parses JSON. 
+        # For this professional skeleton, we provide high-fidelity templates.
+        decoys = [
+            {"path": "/root/db_backup_202504.sql", "content": "-- SQL Dump\nCREATE TABLE accounts (id INT, pin INT, balance DECIMAL);..."},
+            {"path": "/home/admin/.ssh/id_rsa.bak", "content": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA7..."},
+            {"path": "/var/www/config.php", "content": "<?php define('DB_PASS', 'Spring2025!'); ?>"},
+            {"path": "/etc/shadow.old", "content": "root:$6$rounds=40960$hash:19245:0:99999:7:::"},
+            {"path": "/home/admin/confidential_notes.txt", "content": "PLAN FOR Q3 CLOUD MIGRATION: DO NOT SHARE."}
+        ]
+        return decoys
+
 if __name__ == '__main__':
     # Test stub
     synth = LLMSynthesizer(provider="ollama")
     print(synth.synthesize_output("ls -la /root", {"user": "devuser", "cwd": "/home/devuser"}))
+    print(json.dumps(synth.generate_decoy_files(), indent=2))

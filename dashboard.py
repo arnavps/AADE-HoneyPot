@@ -75,6 +75,7 @@ def stats():
     
     # Timeline: attacks per hour for last 24 hours
     timeline = {}
+    ip_metadata = {}
     now = datetime.now()
     
     for e in events:
@@ -82,9 +83,15 @@ def stats():
         ip = e.get('src_ip') or e.get('src_ip', '127.0.0.1')
         unique_ips.add(ip)
         
+        if ip not in ip_metadata:
+            ip_metadata[ip] = {"cmds": 0, "ttps": set(), "first": None, "last": None}
+        
+        ip_metadata[ip]["cmds"] += 1
+        
         # TTP Counts
         for t in e.get('mitre_tags', []):
             tid = t['id']
+            ip_metadata[ip]["ttps"].add(tid)
             if tid not in ttp_counts:
                 ttp_counts[tid] = {"name": t['name'], "count": 0}
             ttp_counts[tid]["count"] += 1
@@ -94,18 +101,45 @@ def stats():
         if e.get('hostname') != 'cowrie_entry':
             high_interaction_active = True
             
-        # Active Sessions (last 15 mins)
+        # Time logic
         try:
             if ts_str:
-                # Handle ISO format
                 ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+                if not ip_metadata[ip]["first"] or ts < ip_metadata[ip]["first"]:
+                    ip_metadata[ip]["first"] = ts
+                if not ip_metadata[ip]["last"] or ts > ip_metadata[ip]["last"]:
+                    ip_metadata[ip]["last"] = ts
+                    
                 if (now.timestamp() - ts.timestamp()) < 900: # 15 mins
                     active_ips.add(ip)
                 
-                # Timeline bucket (by hour)
                 hour_key = ts.strftime('%H:00')
                 timeline[hour_key] = timeline.get(hour_key, 0) + 1
         except: pass
+
+    # Calculate Probability and Engagement for top active sessions
+    session_intel = []
+    for ip, meta in ip_metadata.items():
+        if ip in active_ips:
+            # Probability formula: based on TTP levels and variety
+            # T1070 (Log removal), T1611 (Escape), T1048 (Exfil) = high weight
+            high_weight_ttps = {'T1070', 'T1611', 'T1048', 'T1486', 'T1053.003'}
+            weight = len(meta["ttps"] & high_weight_ttps) * 30
+            weight += len(meta["ttps"]) * 5
+            weight += min(meta["cmds"] // 5, 20)
+            prob = min(weight, 100)
+            
+            duration = 0
+            if meta["first"] and meta["last"]:
+                duration = int((meta["last"] - meta["first"]).total_seconds())
+
+            session_intel.append({
+                "ip": ip,
+                "cmds": meta["cmds"],
+                "ttp_count": len(meta["ttps"]),
+                "prob": prob,
+                "duration": duration
+            })
 
     # Sort timeline keys
     sorted_timeline = [{"time": k, "count": timeline[k]} for k in sorted(timeline.keys())]
@@ -118,7 +152,8 @@ def stats():
         "ttp_counts": ttp_counts,
         "synthetic_responses": llm_hits,
         "timeline": sorted_timeline,
-        "mode": "ADAPTIVE (High Interaction)" if high_interaction_active else "MONITORING (Low Interaction)"
+        "mode": "ADAPTIVE (High Interaction)" if high_interaction_active else "MONITORING (Low Interaction)",
+        "session_intel": session_intel[:10]
     })
 
 if __name__ == '__main__':
