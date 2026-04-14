@@ -30,6 +30,10 @@ TTP_MAPPINGS = {
     r'\b(zip|tar|gpg|openssl|base64)\b': ('T1486', 'Data Encrypted for Impact (Ransomware)'),
     r'\b(xmrig|miner|cpuminer|nohup.*&)\b': ('T1496', 'Resource Hijacking (Cryptojacking)'),
     
+    # Advanced L5 (APT / Escape Attempts)
+    r'\b(sysctl|/dev/mem|/proc/kcore|nsenter)\b': ('T1611', 'Escape to Host'),
+    r'\b(curl.*--data-binary|nc.*-w.*<)\b': ('T1048', 'Exfiltration Over Alternative Protocol'),
+    
     # Defense Evasion
     r'\b(rm\s+.*log|unset\s+HISTFILE)\b': ('T1070', 'Indicator Removal on Host'),
     r'\b(iptables\s+-F|systemctl\s+stop\s+firewalld)\b': ('T1562.004', 'Impair Defenses: Disable or Modify Firewalls')
