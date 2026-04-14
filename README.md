@@ -88,6 +88,19 @@ python3 orchestrator.py
 
 When the attacker connects to Cowrie and executes a suspicious command, the **Orchestrator** triggers live-migration from Cowrie into an active Firecracker MicroVM. Any actions inside the MicroVM are piped out to the host via **AF_VSOCK**. The **Dashboard** actively polls the `.jsonl` logs to show you what's happening live using MITRE ATT&CK mappings.
 
+### 5. Starting the Attack Simulation
+
+To begin an attack simulation, open a **separate terminal** and connect to the honeypot's entry point via SSH. This is where you will execute the commands listed in the **Attack Simulation Guide** below.
+
+```bash
+# Connect to the AADE entry-point (Cowrie)
+ssh root@localhost -p 2222
+
+# Password: any password will work (defaults to accepting all credentials)
+```
+
+Once connected, you are inside the "Primary Trap." Your actions here will be monitored and visualized on the dashboard in real-time.
+
 ---
 
 ## 2. Attack Simulation Guide (15 Scenarios)
