@@ -36,7 +36,14 @@ TTP_MAPPINGS = {
     
     # Defense Evasion
     r'\b(rm\s+.*log|unset\s+HISTFILE)\b': ('T1070', 'Indicator Removal on Host'),
-    r'\b(iptables\s+-F|systemctl\s+stop\s+firewalld)\b': ('T1562.004', 'Impair Defenses: Disable or Modify Firewalls')
+    r'\b(iptables\s+-F|systemctl\s+stop\s+firewalld)\b': ('T1562.004', 'Impair Defenses: Disable or Modify Firewalls'),
+    
+    # New Vector Support (Phased Expansion)
+    r'\b(hydra|medusa|ncrack|brutus)\b': ('T1110', 'Brute Force'),
+    r'\b(sqlmap|union\s+select|information_schema|--\s+)\b': ('T1190', 'Exploit Public-Facing Application (SQLi)'),
+    r'\b(<script>|alert\(|onerror=)\b': ('T1189', 'Drive-by Compromise (XSS)'),
+    r'\b(hping3|--flood|slowloris|synflood)\b': ('T1498', 'Network Denial of Service (DDoS)'),
+    r'\b(arpspoof|ettercap|driftnet|mitmproxy)\b': ('T1557', 'Adversary-in-the-Middle (MITM)')
 }
 
 def map_command_to_ttpx(command):
