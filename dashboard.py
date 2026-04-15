@@ -90,15 +90,19 @@ class DashboardAPI:
                         try:
                             ev = json.loads(line)
                             # Normalize Cowrie events
+                            # Normalize Cowrie events
                             if 'eventid' in ev:
                                 if ev['eventid'] == 'cowrie.command.input':
                                     ev['cmd'] = ev.get('input', '')
-                                    ev['mitre_tags'] = map_command_to_ttpx(ev['cmd'])
                                     ev['hostname'] = 'cowrie_entry'
                                     ev['user'] = ev.get('username', 'root')
                                 elif ev['eventid'] == 'cowrie.session.connect':
                                     ev['cmd'] = '[CONNECTED]'
                                     ev['hostname'] = 'cowrie_entry'
+                            
+                            # Add mitre_tags for ALL events with a cmd (including VSOCK session logs)
+                            if 'cmd' in ev and 'mitre_tags' not in ev:
+                                ev['mitre_tags'] = map_command_to_ttpx(ev['cmd'])
                             
                             if 'cmd' in ev or 'eventid' in ev:
                                 events.append(ev)
