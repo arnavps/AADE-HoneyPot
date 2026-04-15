@@ -15,12 +15,12 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # In-memory store for events pushed from remote sensors (Kali VM)
 REMOTE_EVENTS = []
 
-# Detect Base Directory
+# Detect Base Directory (Standard Linux/Kali structure)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 if not os.path.exists(LOG_DIR):
-    # Fallback to absolute home path if relative fails
-    LOG_DIR = os.path.expanduser('~/aade/logs')
+    # Fallback to absolute home path on Kali
+    LOG_DIR = os.path.expanduser('~/Desktop/AADE-HoneyPot/logs')
 app.config['SECRET_KEY'] = 'aade-advanced-secret!'
 
 class DashboardAPI:
@@ -77,14 +77,13 @@ class DashboardAPI:
     def get_latest_intel(limit=100, hours=24):
         events = []
         log_paths = glob.glob(os.path.join(LOG_DIR, '*.jsonl'))
-        # Aggressive Path Discovery for Cowrie
+        # Aggressive Path Discovery for Cowrie (KALI NATIVE)
         POSSIBLE_COWRIE_PATHS = [
             os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
-            os.path.join(BASE_DIR, '../cowrie/var/log/cowrie/cowrie.json'),
-            os.path.join(BASE_DIR, 'var/log/cowrie/cowrie.json'),
             os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
-            os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
             os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
+            '/home/kali/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json',
+            '/home/kali/aade/cowrie/var/log/cowrie/cowrie.json',
             '/var/log/cowrie/cowrie.json'
         ]
         
@@ -100,12 +99,15 @@ class DashboardAPI:
             if chosen_path not in log_paths:
                 log_paths.append(chosen_path)
             found_cowrie = True
-            print(f"[*] Dashboard: Active Cowrie logs found at {chosen_path}")
+            # Quiet logging for production feel
+            if not hasattr(app, 'last_log_path') or app.last_log_path != chosen_path:
+                print(f"[*] Dashboard: Active Cowrie logs detected at {chosen_path}")
+                app.last_log_path = chosen_path
         else:
-            print("[!] Dashboard: Cowrie logs NOT found. searched: " + str(POSSIBLE_COWRIE_PATHS[:3]))
-        
-        if not found_cowrie:
-            print("[!] Dashboard: Cowrie logs not found in any search path.")
+            # Fallback debug message
+            if not hasattr(app, 'log_warn_sent'):
+                print(f"[!] Dashboard: Telemetry missing. Ensure Cowrie is running and logging to one of: {POSSIBLE_COWRIE_PATHS[:2]}")
+                app.log_warn_sent = True
 
         for path in sorted(log_paths, key=os.path.getmtime, reverse=True)[:15]: # Read more files for stats
             try:
@@ -315,7 +317,10 @@ def stats():
         "system_health": DashboardAPI.get_system_health(),
         "deception_strategy": deception_strategy,
         "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5],
-        "server_time": datetime.utcnow().isoformat() + 'Z'
+        "active_log_path": getattr(app, 'last_log_path', 'Searching...'),
+        "server_time": datetime.utcnow().isoformat() + "Z", # Explicit Zulu for frontend sync
+        "health": health,
+        "deception": deception
     })
 
 @app.route('/api/debug')
@@ -324,13 +329,11 @@ def debug_diagnostic():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     possible_paths = [
         os.path.join(base_dir, 'cowrie/var/log/cowrie/cowrie.json'),
-        os.path.join(base_dir, 'var/log/cowrie/cowrie.json'),
         os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
-        os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
         os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
-        os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
-        '/var/log/cowrie/cowrie.json',
-        '/home/cowrie/cowrie/var/log/cowrie/cowrie.json'
+        '/home/kali/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json',
+        '/home/kali/aade/cowrie/var/log/cowrie/cowrie.json',
+        '/var/log/cowrie/cowrie.json'
     ]
     
     found_path = None
@@ -364,7 +367,7 @@ def intel():
         data = DashboardAPI.get_latest_intel(limit=limit)
         return jsonify({
             "events": data,
-            "server_time": datetime.utcnow().isoformat() + 'Z'
+            "server_time": datetime.utcnow().isoformat() + "Z"
         })
     except Exception as e:
         return jsonify({"error": str(e), "events": []}), 500

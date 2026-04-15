@@ -12,13 +12,13 @@ from llm_synthesizer import LLMSynthesizer
 # Detect Base Directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Aggressive Path Discovery for Cowrie (Matches dashboard.py)
+# Aggressive Path Discovery for Cowrie (Matches dashboard.py - KALI NATIVE)
 POSSIBLE_COWRIE_PATHS = [
     os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
     os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
-    os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
     os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
-    os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
+    '/home/kali/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json',
+    '/home/kali/aade/cowrie/var/log/cowrie/cowrie.json',
     '/var/log/cowrie/cowrie.json'
 ]
 

@@ -382,9 +382,10 @@
             <div class="status-pill" style="background: var(--bg); border: 1px solid var(--border);">
                 <span id="risk-level" style="color: var(--success); font-weight: 800;">RISK: MINIMAL</span>
             </div>
-            <div class="status-pill" id="sync-pill" style="min-width: 140px;">
+            <div class="status-pill" id="sync-pill" style="min-width: 140px; position: relative;">
                 <div class="status-dot dot-pulse" id="sync-signal" style="background: var(--success)"></div>
                 <span id="sync-text">SYNC: OK</span>
+                <div id="active-log-path" style="position: absolute; top: 100%; right: 0; font-size: 10px; opacity: 0; transition: opacity 0.3s; background: var(--bg); padding: 4px; border: 1px solid var(--border); pointer-events: none; z-index: 100; white-space: nowrap;"></div>
             </div>
         </div>
     </header>
@@ -645,6 +646,13 @@
                 document.getElementById('stat-ghost').innerText = stats.ghost_responses ?? 0;
                 document.getElementById('stat-attacks').innerText = stats.total_attacks ?? 0;
                 
+                // Active Log Path Diagnostic
+                const logPathEl = document.getElementById('active-log-path');
+                if (stats.active_log_path && logPathEl) {
+                    logPathEl.innerText = `SRC: ${stats.active_log_path}`;
+                    logPathEl.style.opacity = '1';
+                }
+                
                 const statTotal = document.getElementById('stat-total');
                 if (statTotal) statTotal.innerText = stats.threat_velocity ?? 0;
                 const honeyDot = document.getElementById('honeypot-signal');
@@ -888,7 +896,10 @@
                 console.error("Critical Dashboard Failure:", e);
                 const syncSignal = document.getElementById('sync-signal');
                 const syncText = document.getElementById('sync-text');
-                if (syncSignal) syncSignal.style.background = 'var(--danger)';
+                if (syncSignal) {
+                    syncSignal.style.background = 'var(--danger)';
+                    syncSignal.classList.remove('dot-pulse');
+                }
                 if (syncText) syncText.innerText = 'SYNC: FAILED';
             }
         }
