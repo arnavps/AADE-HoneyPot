@@ -95,7 +95,7 @@ To begin an attack simulation, open a **separate terminal** and connect to the h
 
 ```bash
 # Connect to the AADE entry-point (Cowrie)
-ssh root@localhost -p 2222
+sudo ssh root@localhost -p 2222
 
 # Password: any password will work (defaults to accepting all credentials)
 ```
