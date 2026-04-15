@@ -720,7 +720,6 @@
                             <div style="color: var(--text-main); font-weight: 600; word-break: break-all;">
                                 <span style="color: #10B981;">➜</span> ${cmd}
                             </div>
-                            ${ttpName ? `<div style="font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; opacity: 0.9;">↳ ${ttpName}</div>` : ''}
                         </div>
                     `;
                 }).join('');
@@ -861,13 +860,12 @@
                         const ttpName = (ev.mitre_tags || [])[0]?.name || '';
 
                         timelineHtml += `
-                            <div style="margin-bottom: 8px; padding: 6px 0; border-bottom: 1px solid var(--accent); opacity: 0.9;">
-                                <div style="display: flex; align-items: baseline; gap: 8px;">
-                                    <span style="color: var(--secondary); font-size: 11px; min-width: 70px;">${time}</span>
-                                    <span style="font-size: 10px; color: ${hostColor}; background: ${hostColor}20; padding: 2px 6px; border-radius: 4px; min-width: 60px; text-align: center;">${hostLabel}</span>
-                                    <span style="color: var(--text-main); font-weight: 600; flex: 1; word-break: break-all;">${cmd}</span>
+                            <div style="margin-bottom: 8px; padding: 8px 0; border-bottom: 1px solid var(--accent); opacity: 0.9;">
+                                <div style="display: flex; align-items: baseline; gap: 12px;">
+                                    <span style="color: var(--secondary); font-size: 11px; min-width: 75px; font-family: 'JetBrains Mono';">[${time}]</span>
+                                    <span style="color: var(--text-main); font-weight: 700; flex: 1; word-break: break-all;">${cmd}</span>
+                                    ${ttpName ? `<span style="font-size: 10px; color: var(--primary); font-weight: 800; background: var(--primary)10; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">${ttpName}</span>` : ''}
                                 </div>
-                                ${ttpName ? `<div style="margin-left: 145px; font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 2px;">↳ Interpretation: ${ttpName}</div>` : ''}
                             </div>
                         `;
                     });
