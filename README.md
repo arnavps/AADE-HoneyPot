@@ -351,15 +351,15 @@ The AADE Dashboard provides real-time visibility into attacker activity across 1
 
 | Component | Description |
 |-----------|-------------|
-| **LIVE SESSION COMMAND FLOW** | Real-time attack progression with color-coded phase badges: RECON (blue) → ACCESS (yellow) → EXEC/PERSIST (red) → IMPACT (purple) |
-| **ATTACK TIMELINE** | 24-hour line chart showing attack frequency patterns over time |
-| **VECTOR DISTRIBUTION** | Doughnut chart displaying which MITRE ATT&CK tactics attackers use most |
-| **TOP MITRE DETECTION VECTORS** | Radar chart visualizing attack intensity across 7 tactic categories |
-| **MITRE TECHNIQUE MATRIX** | Detailed table mapping specific MITRE ATT&CK techniques to observed hit counts |
-| **ACTIVE ADVERSARY PROFILES** | Per-attacker cards showing: commands run, TTPs triggered, session duration, and persona classification (Unknown Crawler → Automated Recon Bot → Credential Sprayer → Skilled Human Operator → Advanced Persistent Threat) |
-| **ACTIVE SURFACE** | Currently listening network ports and services exposed to attackers |
-| **TACTICAL RESPONSE STRATEGY** | RL Engine status: current policy state, stealth integrity percentage, and active tactical directives |
-| **ATTACK SESSION TIMELINE** | Complete attack narratives per IP: command sequences with [COWRIE] vs [MICROVM] badges and 🔥 ESCALATION markers showing when attackers were transparently migrated to the high-interaction environment |
+| **LIVE SESSION COMMAND FLOW** | Real-time command stream with high-visibility phase badges and JetBrains Mono typography for maximum legibility of active terminal I/O. |
+| **ATTACK TIMELINE** | 24-hour visualization of attack frequency patterns and temporal threat distribution. |
+| **VECTOR DISTRIBUTION** | Volume analysis of MITRE ATT&CK tactics observed during active engagements. |
+| **TOP MITRE DETECTION VECTORS** | Multi-dimensional radar visualization of threat intensity across primary attack stages. |
+| **MITRE TECHNIQUE MATRIX** | Granular mapping of specific adversarial techniques to the global ATT&CK taxonomy. |
+| **ACTIVE ADVERSARY PROFILES** | Dynamic intelligence cards classifying attackers from 'Automated Bots' to 'Skilled Human Operators' based on behavioral heuristics. |
+| **ACTIVE SURFACE** | Real-time monitoring of exposed honeypot service ports and adaptive listener states. |
+| **TACTICAL RESPONSE STRATEGY** | Operational status of the Reinforcement Learning engine and current defensive posture. |
+| **ATTACK SESSION TIMELINE** | Dense forensic narrative: `[UTC Time] — Executed Command — MITRE TTP`. Optimized for professional analysis with bold hierarchical indicators and zero horizontal noise. |
 
 ---
 
