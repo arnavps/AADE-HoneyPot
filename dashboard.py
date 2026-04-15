@@ -91,16 +91,21 @@ class DashboardAPI:
         ]
         
         found_cowrie = False
+        found_paths = []
         for path in POSSIBLE_COWRIE_PATHS:
             if os.path.exists(path):
-                print(f"[*] Dashboard: Success! Found Cowrie logs at {path}")
-                log_paths.append(path)
-                found_cowrie = True
-                break # Prioritize the first one found
+                found_paths.append(path)
+        
+        if found_paths:
+            # Sort by modification time, newest first
+            found_paths.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            chosen_path = found_paths[0]
+            print(f"[*] Dashboard: Success! Found active Cowrie logs at {chosen_path}")
+            log_paths.append(chosen_path)
+            found_cowrie = True
         
         if not found_cowrie:
-            print(f"[!] Dashboard Error: Could not find ANY cowrie.json log file!")
-            print(f"    Searched: {', '.join(POSSIBLE_COWRIE_PATHS[:2])} ...")
+            print("[!] Dashboard: Cowrie logs not found in any search path.")
 
         for path in sorted(log_paths, key=os.path.getmtime, reverse=True)[:15]: # Read more files for stats
             try:

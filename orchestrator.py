@@ -11,13 +11,35 @@ from llm_synthesizer import LLMSynthesizer
 
 # Detect Base Directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-COWRIE_LOG = os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json')
+
+# Aggressive Path Discovery for Cowrie (Matches dashboard.py)
+POSSIBLE_COWRIE_PATHS = [
+    os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
+    os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
+    os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
+    os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
+    os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
+    '/var/log/cowrie/cowrie.json'
+]
+
+COWRIE_LOG = None
+found_paths = []
+for path in POSSIBLE_COWRIE_PATHS:
+    if os.path.exists(path):
+        found_paths.append(path)
+
+if found_paths:
+    # Sort by modification time, newest first to get the active log
+    found_paths.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+    COWRIE_LOG = found_paths[0]
+else:
+    # Default to a placeholder within BASE_DIR if nothing found
+    COWRIE_LOG = os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json')
+
 KERNEL_PATH = os.path.join(BASE_DIR, 'kernels/vmlinux.bin')
 ROOTFS_PATH = os.path.join(BASE_DIR, 'images/rootfs_gold.ext4')
 
-# Fallbacks for legacy setup
-if not os.path.exists(COWRIE_LOG):
-    COWRIE_LOG = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+# Fallbacks for legacy setup (Kernels/Images)
 if not os.path.exists(KERNEL_PATH):
     KERNEL_PATH = os.path.expanduser('~/aade/kernels/vmlinux.bin')
 if not os.path.exists(ROOTFS_PATH):
@@ -28,6 +50,11 @@ FC_API_URL = "http://localhost/api" # Firecracker API
 class MasterOrchestrator:
     def __init__(self):
         print("[*] AADE Master Orchestrator: Initializing Advanced Logic...")
+        if os.path.exists(COWRIE_LOG):
+            print(f"[*] Orchestrator: Success! Monitoring Cowrie logs at {COWRIE_LOG}")
+        else:
+            print(f"[!] Orchestrator: Warning! Cowrie log not found at {COWRIE_LOG}")
+        
         self.rl_agent = RLAgent("aade_agent.zip")
         self.llm = LLMSynthesizer(provider="ollama")
         self.session_start = time.time()
