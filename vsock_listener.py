@@ -49,7 +49,7 @@ class VsockIntelligenceListener:
     def process_event(self, data, conn):
         try:
             event = json.loads(data.decode('utf-8'))
-            event['timestamp'] = datetime.now().isoformat()
+            event['timestamp'] = datetime.utcnow().isoformat() + 'Z'
             
             cmd = event.get('cmd', '')
             user = event.get('user', 'unknown')

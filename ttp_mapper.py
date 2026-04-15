@@ -43,7 +43,7 @@ TTP_MAPPINGS = {
     r'\b(sqlmap|union\s+select|information_schema|--\s+)\b': ('T1190', 'Exploit Public-Facing Application (SQLi)'),
     r'\b(<script>|alert\(|onerror=)\b': ('T1189', 'Drive-by Compromise (XSS)'),
     r'\b(hping3|--flood|slowloris|synflood)\b': ('T1498', 'Network Denial of Service (DDoS)'),
-    r'\b(arpspoof|ettercap|driftnet|mitmproxy)\b': ('T1557', 'Adversary-in-the-Middle (MITM)')
+    r'\b(arpspoof|ettercap|driftnet|mitmproxy)\b': ('T1557', 'Man-in-the-Middle (MITM) Intercept')
 }
 
 def map_command_to_ttpx(command):

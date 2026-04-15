@@ -619,17 +619,17 @@
             });
         }
 
-        async function update() {
-            try {
-                const [statsRes, intelRes] = await Promise.all([
-                    fetch('/api/stats'),
-                    fetch('/api/intel')
-                ]);
-                const stats = await statsRes.json();
-                const intel = await intelRes.json();
-
-                // Primary Metrics Row
-                document.getElementById('stat-attacks').innerText = stats.total_attacks || 0;
+        async function updateDashboard() {
+            const response = await fetch('/api/stats');
+            const stats = await response.json();
+            
+            const intelResponse = await fetch('/api/intel');
+            const intelData = await intelResponse.json();
+            const intel = intelData.events || [];
+            const serverTime = new Date(intelData.server_time || Date.now());
+            
+            const commandFlow = document.getElementById('commandFlow');
+            const flowHtml = intel.slice(0, 15).map(ev => {
                 document.getElementById('stat-sessions').innerText = stats.active_sessions || 0;
                 document.getElementById('stat-ips').innerText = stats.unique_ips || 0;
                 document.getElementById('stat-ghost').innerText = stats.ghost_responses || 0;
@@ -686,6 +686,8 @@
                         phaseColor = '#8B5CF6'; // purple
                     }
 
+                    const ttpName = (ev.mitre_tags || [])[0]?.name || '';
+
                     return `
                         <div style="margin-bottom: 8px; padding: 8px 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid ${phaseColor};">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -695,7 +697,7 @@
                             <div style="color: var(--text-main); font-weight: 600; word-break: break-all;">
                                 <span style="color: #10B981;">➜</span> ${cmd}
                             </div>
-                            ${tags ? `<div style="font-size: 10px; color: #7C3AED; margin-top: 2px;">${tags}</div>` : ''}
+                            ${ttpName ? `<div style="font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; opacity: 0.9;">↳ ${ttpName}</div>` : ''}
                         </div>
                     `;
                 }).join('');
@@ -784,13 +786,24 @@
                 Object.entries(sessions).slice(0, 3).forEach(([ip, session]) => {
                     const parseTs = (ts) => {
                         if (!ts) return new Date();
-                        // If it's pure ISO without tz, assume UTC
-                        if (ts.includes('T') && !ts.includes('Z') && !ts.includes('+')) return new Date(ts + 'Z');
-                        return new Date(ts);
+                        // Support Cowrie's space-separated and T-separated formats
+                        let cleanTs = ts.replace(' ', 'T');
+                        // Force UTC if no timezone is specified (Honeypots usually log in UTC)
+                        if (!cleanTs.includes('Z') && !cleanTs.includes('+')) {
+                            cleanTs += 'Z';
+                        }
+                        const d = new Date(cleanTs);
+                        return isNaN(d.getTime()) ? new Date() : d;
                     };
                     const firstTime = parseTs(session.events[0]?.timestamp);
-                    const timeAgo = Math.floor((Date.now() - firstTime) / 60000);
-                    const timeStr = timeAgo < 1 ? 'just now' : (timeAgo > 1440 ? `${Math.floor(timeAgo/1440)}d ago` : `${timeAgo}m ago`);
+                    const now = serverTime.getTime();
+                    const diffMs = now - firstTime;
+                    const timeAgo = Math.floor(diffMs / 60000);
+                    
+                    let timeStr = 'just now';
+                    if (timeAgo > 0) {
+                        timeStr = timeAgo > 1440 ? `${Math.floor(timeAgo/1440)}d ago` : `${timeAgo}m ago`;
+                    }
 
                     timelineHtml += `
                         <div style="margin-bottom: 24px; border-left: 2px solid var(--border); padding-left: 16px;">
@@ -819,12 +832,16 @@
 
                         const hostColor = ev.hostname === 'cowrie_entry' ? '#64748B' : '#10B981';
                         const hostLabel = ev.hostname === 'cowrie_entry' ? '[COWRIE]' : '[MICROVM]';
+                        const ttpName = (ev.mitre_tags || [])[0]?.name || '';
 
                         timelineHtml += `
-                            <div style="margin-bottom: 8px; padding: 6px 0; display: flex; align-items: baseline; gap: 8px;">
-                                <span style="color: var(--secondary); font-size: 11px; min-width: 70px;">${time}</span>
-                                <span style="font-size: 10px; color: ${hostColor}; background: ${hostColor}20; padding: 2px 6px; border-radius: 4px; min-width: 60px; text-align: center;">${hostLabel}</span>
-                                <span style="color: var(--text-main); word-break: break-all; flex: 1;">${cmd}</span>
+                            <div style="margin-bottom: 8px; padding: 6px 0; border-bottom: 1px solid var(--accent); opacity: 0.9;">
+                                <div style="display: flex; align-items: baseline; gap: 8px;">
+                                    <span style="color: var(--secondary); font-size: 11px; min-width: 70px;">${time}</span>
+                                    <span style="font-size: 10px; color: ${hostColor}; background: ${hostColor}20; padding: 2px 6px; border-radius: 4px; min-width: 60px; text-align: center;">${hostLabel}</span>
+                                    <span style="color: var(--text-main); font-weight: 600; flex: 1; word-break: break-all;">${cmd}</span>
+                                </div>
+                                ${ttpName ? `<div style="margin-left: 145px; font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 2px;">↳ Interpretation: ${ttpName}</div>` : ''}
                             </div>
                         `;
                     });

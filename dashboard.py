@@ -358,8 +358,18 @@ def debug_diagnostic():
             status["error"] = str(e)
             
     return jsonify(status)
-            
-    return jsonify(status)
+
+@app.route('/api/intel')
+def intel():
+    try:
+        limit = int(request.args.get('limit', 100))
+        data = intel_master.get_latest_intel(limit=limit)
+        return jsonify({
+            "events": data,
+            "server_time": datetime.utcnow().isoformat() + 'Z'
+        })
+    except Exception as e:
+        return jsonify({"error": str(e), "events": []}), 500
 
 if __name__ == '__main__':
     print("[*] AADE Intelligent Dashboard Running on Port 5000...")
