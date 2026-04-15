@@ -77,27 +77,26 @@ class DashboardAPI:
     def get_latest_intel(limit=100, hours=24):
         events = []
         log_paths = glob.glob(os.path.join(LOG_DIR, '*.jsonl'))
-        # Prioritize local cowrie path in cloned dir
-        LOCAL_COWRIE = os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json')
-        if os.path.exists(LOCAL_COWRIE):
-            COWRIE_PATH = LOCAL_COWRIE
-        else:
-            COWRIE_PATH = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
-        
-        # Check alternative common paths for Cowrie logs
-        ALT_COWRIE_PATHS = [
-            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json.1'),
-            os.path.expanduser('~/aade/cowrie/cowrie.json')
+        # Aggressive Path Discovery for Cowrie
+        POSSIBLE_COWRIE_PATHS = [
+            os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
+            os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json.1'),
+            os.path.join(BASE_DIR, 'var/log/cowrie/cowrie.json'), # If running from cowrie dir
+            os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
+            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
         ]
         
-        if os.path.exists(COWRIE_PATH):
-            print(f"[*] Dashboard: Reading Cowrie logs from {COWRIE_PATH}")
-            log_paths.append(COWRIE_PATH)
-        else:
-            print(f"[!] Dashboard Error: Cowrie log NOT found at {COWRIE_PATH}")
-        for alt_path in ALT_COWRIE_PATHS:
-            if os.path.exists(alt_path):
-                log_paths.append(alt_path)
+        found_cowrie = False
+        for path in POSSIBLE_COWRIE_PATHS:
+            if os.path.exists(path):
+                print(f"[*] Dashboard: Success! Found Cowrie logs at {path}")
+                log_paths.append(path)
+                found_cowrie = True
+                break # Prioritize the first one found
+        
+        if not found_cowrie:
+            print(f"[!] Dashboard Error: Could not find ANY cowrie.json log file!")
+            print(f"    Searched: {', '.join(POSSIBLE_COWRIE_PATHS[:2])} ...")
 
         for path in sorted(log_paths, key=os.path.getmtime, reverse=True)[:15]: # Read more files for stats
             try:
