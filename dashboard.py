@@ -318,9 +318,7 @@ def stats():
         "deception_strategy": deception_strategy,
         "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5],
         "active_log_path": getattr(app, 'last_log_path', 'Searching...'),
-        "server_time": datetime.utcnow().isoformat() + "Z", # Explicit Zulu for frontend sync
-        "health": health,
-        "deception": deception
+        "server_time": datetime.utcnow().isoformat() + "Z" # Explicit Zulu for frontend sync
     })
 
 @app.route('/api/debug')
