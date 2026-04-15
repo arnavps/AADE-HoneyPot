@@ -380,7 +380,11 @@
                 <span>MICROVM ACTIVE</span>
             </div>
             <div class="status-pill" style="background: var(--bg); border: 1px solid var(--border);">
-                <span id="risk-level" style="color: var(--danger); font-weight: 800;">RISK: MINIMAL</span>
+                <span id="risk-level" style="color: var(--success); font-weight: 800;">RISK: MINIMAL</span>
+            </div>
+            <div class="status-pill" id="sync-pill" style="min-width: 140px;">
+                <div class="status-dot dot-pulse" id="sync-signal" style="background: var(--success)"></div>
+                <span id="sync-text">SYNC: OK</span>
             </div>
         </div>
     </header>
@@ -619,22 +623,30 @@
             });
         }
 
-        async function updateDashboard() {
-            const response = await fetch('/api/stats');
-            const stats = await response.json();
-            
-            const intelResponse = await fetch('/api/intel');
-            const intelData = await intelResponse.json();
-            const intel = intelData.events || [];
-            const serverTime = new Date(intelData.server_time || Date.now());
-            
-            const commandFlow = document.getElementById('commandFlow');
-            const flowHtml = intel.slice(0, 15).map(ev => {
-                document.getElementById('stat-sessions').innerText = stats.active_sessions || 0;
-                document.getElementById('stat-ips').innerText = stats.unique_ips || 0;
-                document.getElementById('stat-ghost').innerText = stats.ghost_responses || 0;
+        async function update() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) throw new Error("Stats API Unreachable");
+                const stats = await response.json();
+                
+                const intelResponse = await fetch('/api/intel');
+                if (!intelResponse.ok) throw new Error("Intel API Unreachable");
+                const intelData = await intelResponse.json();
+                
+                const intel = intelData.events || [];
+                const serverTime = new Date(intelData.server_time || stats.server_time || Date.now());
 
-                // Status Signals
+                // Update Sync Status
+                document.getElementById('sync-signal').style.background = 'var(--success)';
+                document.getElementById('sync-text').innerText = 'SYNC: OK';
+
+                document.getElementById('stat-sessions').innerText = stats.active_sessions ?? 0;
+                document.getElementById('stat-ips').innerText = stats.unique_ips ?? 0;
+                document.getElementById('stat-ghost').innerText = stats.ghost_responses ?? 0;
+                document.getElementById('stat-attacks').innerText = stats.total_attacks ?? 0;
+                
+                const statTotal = document.getElementById('stat-total');
+                if (statTotal) statTotal.innerText = stats.threat_velocity ?? 0;
                 const honeyDot = document.getElementById('honeypot-signal');
                 const vmDot = document.getElementById('microvm-signal');
                 if (stats.honeypot_active) honeyDot.classList.add('dot-pulse');
@@ -644,10 +656,13 @@
                 else vmDot.classList.remove('dot-pulse');
 
                 // Core Metrics
-                document.getElementById('stat-total').innerText = stats.threat_velocity || 0;
-                document.getElementById('stat-intent').innerText = stats.session_intel.length > 0
-                    ? `${Math.round(stats.session_intel.reduce((a, b) => a + b.prob, 0) / stats.session_intel.length)}%`
-                    : '0%';
+                const intentEl = document.getElementById('stat-intent');
+                if (intentEl) {
+                    const sessionIntel = stats.session_intel || [];
+                    intentEl.innerText = sessionIntel.length > 0
+                        ? `${Math.round(sessionIntel.reduce((a, b) => a + (b.prob || 0), 0) / sessionIntel.length)}%`
+                        : '0%';
+                }
 
                 // System Vitality
                 const h = stats.system_health || {};
@@ -737,22 +752,25 @@
                 document.getElementById('ttpMatrix').innerHTML = matrixHtml;
 
                 // Requirement 5: Active Profiles
-                const profilesHtml = stats.session_intel.map(profile => `
-                    <div class="profile-card">
-                        <div class="profile-header">
-                            <span class="profile-ip">${profile.ip}</span>
-                            <span class="profile-risk">RISK: ${profile.prob}%</span>
+                const attackerProfiles = document.getElementById('attackerProfiles');
+                if (attackerProfiles) {
+                    const profilesHtml = (stats.session_intel || []).map(profile => `
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <span class="profile-ip">${profile.ip || '?.?.?.?'}</span>
+                                <span class="profile-risk">RISK: ${profile.prob || 0}%</span>
+                            </div>
+                            <div class="profile-body">
+                                <div><span class="profile-label">Commands:</span> <span class="profile-val">${profile.cmds || 0}</span></div>
+                                <div><span class="profile-label">Yield:</span> <span class="profile-val">${profile.ttp_count || 0} TTPs</span></div>
+                                <div><span class="profile-label">Duration:</span> <span class="profile-val">${profile.duration || '0s'}</span></div>
+                                <div><span class="profile-label">Status:</span> <span class="profile-val" style="color: var(--success)">TRAPPED</span></div>
+                            </div>
+                            <div class="profile-persona">${profile.persona || 'Unknown'}</div>
                         </div>
-                        <div class="profile-body">
-                            <div><span class="profile-label">Commands:</span> <span class="profile-val">${profile.cmds}</span></div>
-                            <div><span class="profile-label">Yield:</span> <span class="profile-val">${profile.ttp_count} TTPs</span></div>
-                            <div><span class="profile-label">Duration:</span> <span class="profile-val">${profile.duration}</span></div>
-                            <div><span class="profile-label">Status:</span> <span class="profile-val" style="color: var(--success)">TRAPPED</span></div>
-                        </div>
-                        <div class="profile-persona">${profile.persona}</div>
-                    </div>
-                `).join('');
-                document.getElementById('attackerProfiles').innerHTML = profilesHtml || '<div style="color: var(--secondary); text-align: center; padding: 40px;">No active profiles detected</div>';
+                    `).join('');
+                    attackerProfiles.innerHTML = profilesHtml || '<div style="color: var(--secondary); text-align: center; padding: 40px;">No active profiles detected</div>';
+                }
 
                 // Requirement 6: Tactical Strategy (Replaces Event Stream)
                 const strat = stats.deception_strategy || {};
@@ -868,6 +886,10 @@
 
             } catch (e) {
                 console.error("Critical Dashboard Failure:", e);
+                const syncSignal = document.getElementById('sync-signal');
+                const syncText = document.getElementById('sync-text');
+                if (syncSignal) syncSignal.style.background = 'var(--danger)';
+                if (syncText) syncText.innerText = 'SYNC: FAILED';
             }
         }
 

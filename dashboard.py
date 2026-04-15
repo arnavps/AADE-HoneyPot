@@ -80,14 +80,12 @@ class DashboardAPI:
         # Aggressive Path Discovery for Cowrie
         POSSIBLE_COWRIE_PATHS = [
             os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
-            os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json.1'),
-            os.path.join(BASE_DIR, 'cowrie/cowrie.json'),
+            os.path.join(BASE_DIR, '../cowrie/var/log/cowrie/cowrie.json'),
+            os.path.join(BASE_DIR, 'var/log/cowrie/cowrie.json'),
             os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
             os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
             os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
-            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
-            '/var/log/cowrie/cowrie.json',
-            '/home/cowrie/cowrie/var/log/cowrie/cowrie.json'
+            '/var/log/cowrie/cowrie.json'
         ]
         
         found_cowrie = False
@@ -97,12 +95,14 @@ class DashboardAPI:
                 found_paths.append(path)
         
         if found_paths:
-            # Sort by modification time, newest first
             found_paths.sort(key=lambda x: os.path.getmtime(x), reverse=True)
             chosen_path = found_paths[0]
-            print(f"[*] Dashboard: Success! Found active Cowrie logs at {chosen_path}")
-            log_paths.append(chosen_path)
+            if chosen_path not in log_paths:
+                log_paths.append(chosen_path)
             found_cowrie = True
+            print(f"[*] Dashboard: Active Cowrie logs found at {chosen_path}")
+        else:
+            print("[!] Dashboard: Cowrie logs NOT found. searched: " + str(POSSIBLE_COWRIE_PATHS[:3]))
         
         if not found_cowrie:
             print("[!] Dashboard: Cowrie logs not found in any search path.")
@@ -314,7 +314,8 @@ def stats():
         "ttp_counts": ttp_counts,
         "system_health": DashboardAPI.get_system_health(),
         "deception_strategy": deception_strategy,
-        "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5]
+        "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5],
+        "server_time": datetime.utcnow().isoformat() + 'Z'
     })
 
 @app.route('/api/debug')
