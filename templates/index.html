@@ -803,7 +803,8 @@
 
                     // Show up to 6 events per session
                     session.events.slice(0, 6).forEach((ev, idx) => {
-                        const time = ev.timestamp?.split('T')[1]?.substring(0, 8) || '--:--:--';
+                        const evTs = parseTs(ev.timestamp);
+                        const time = evTs.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                         const cmd = ev.cmd || '...';
                         const isMigration = session.migrated && idx === session.migrationIndex;
 

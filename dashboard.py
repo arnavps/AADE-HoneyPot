@@ -85,7 +85,7 @@ class DashboardAPI:
             if os.path.exists(alt_path):
                 log_paths.append(alt_path)
 
-        for path in sorted(log_paths, reverse=True)[:10]: # Read more files for stats
+        for path in sorted(log_paths, key=os.path.getmtime, reverse=True)[:15]: # Read more files for stats
             try:
                 with open(path, 'r') as f:
                     lines = f.readlines()[-500:] # Last 500 lines per file
