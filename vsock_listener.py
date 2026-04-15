@@ -11,7 +11,11 @@ AF_VSOCK = getattr(socket, 'AF_VSOCK', 40)
 VMADDR_CID_ANY = getattr(socket, 'VMADDR_CID_ANY', -1)
 PORT = 5005
 
-LOG_DIR = os.path.expanduser('~/aade/logs')
+# Detect Base Directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    LOG_DIR = os.path.expanduser('~/aade/logs')
 
 class VsockIntelligenceListener:
     def __init__(self):

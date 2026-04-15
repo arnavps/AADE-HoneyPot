@@ -15,7 +15,12 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # In-memory store for events pushed from remote sensors (Kali VM)
 REMOTE_EVENTS = []
 
-LOG_DIR = os.path.expanduser('~/aade/logs')
+# Detect Base Directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    # Fallback to absolute home path if relative fails
+    LOG_DIR = os.path.expanduser('~/aade/logs')
 app.config['SECRET_KEY'] = 'aade-advanced-secret!'
 
 class DashboardAPI:
@@ -72,7 +77,13 @@ class DashboardAPI:
     def get_latest_intel(limit=100, hours=24):
         events = []
         log_paths = glob.glob(os.path.join(LOG_DIR, '*.jsonl'))
-        COWRIE_PATH = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+        # Prioritize local cowrie path in cloned dir
+        LOCAL_COWRIE = os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json')
+        if os.path.exists(LOCAL_COWRIE):
+            COWRIE_PATH = LOCAL_COWRIE
+        else:
+            COWRIE_PATH = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+        
         # Check alternative common paths for Cowrie logs
         ALT_COWRIE_PATHS = [
             os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json.1'),
@@ -81,6 +92,8 @@ class DashboardAPI:
         
         if os.path.exists(COWRIE_PATH):
             log_paths.append(COWRIE_PATH)
+        else:
+            print(f"DEBUG: Cowrie log not found at {COWRIE_PATH}")
         for alt_path in ALT_COWRIE_PATHS:
             if os.path.exists(alt_path):
                 log_paths.append(alt_path)

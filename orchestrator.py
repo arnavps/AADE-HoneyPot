@@ -9,9 +9,20 @@ from rl_orchestrator import RLAgent
 from ttp_mapper import map_command_to_ttpx
 from llm_synthesizer import LLMSynthesizer
 
-COWRIE_LOG = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
-KERNEL_PATH = os.path.expanduser('~/aade/kernels/vmlinux.bin')
-ROOTFS_PATH = os.path.expanduser('~/aade/images/rootfs_gold.ext4')
+# Detect Base Directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COWRIE_LOG = os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json')
+KERNEL_PATH = os.path.join(BASE_DIR, 'kernels/vmlinux.bin')
+ROOTFS_PATH = os.path.join(BASE_DIR, 'images/rootfs_gold.ext4')
+
+# Fallbacks for legacy setup
+if not os.path.exists(COWRIE_LOG):
+    COWRIE_LOG = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+if not os.path.exists(KERNEL_PATH):
+    KERNEL_PATH = os.path.expanduser('~/aade/kernels/vmlinux.bin')
+if not os.path.exists(ROOTFS_PATH):
+    ROOTFS_PATH = os.path.expanduser('~/aade/images/rootfs_gold.ext4')
+
 FC_API_URL = "http://localhost/api" # Firecracker API
 
 class MasterOrchestrator:
