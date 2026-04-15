@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AADE Dashboard - Crystal Command</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg: #F8FAFC;
@@ -32,7 +35,8 @@
             background-color: var(--bg);
             color: var(--text-main);
             padding: 40px;
-            font-size: 18px; /* Increased baseline */
+            font-size: 18px;
+            /* Increased baseline */
             line-height: 1.6;
         }
 
@@ -63,7 +67,7 @@
             padding: 10px 24px;
             border-radius: 9999px;
             border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             font-weight: 600;
             font-size: 16px;
         }
@@ -81,9 +85,20 @@
         }
 
         @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         .grid {
@@ -130,8 +145,13 @@
             margin-top: 8px;
         }
 
-        .span-2 { grid-column: span 2; }
-        .span-4 { grid-column: span 4; }
+        .span-2 {
+            grid-column: span 2;
+        }
+
+        .span-4 {
+            grid-column: span 4;
+        }
 
         .monitor-feed {
             max-height: 400px;
@@ -147,7 +167,9 @@
             align-items: center;
         }
 
-        .event-node:last-child { border-bottom: none; }
+        .event-node:last-child {
+            border-bottom: none;
+        }
 
         .intent-gauge-container {
             width: 100%;
@@ -174,7 +196,7 @@
         /* Map Styling */
         .map-container {
             height: 350px;
-            background: rgba(0,0,0,0.02);
+            background: rgba(0, 0, 0, 0.02);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -194,9 +216,20 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            70% { transform: scale(3); opacity: 0; }
-            100% { transform: scale(3); opacity: 0; }
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            70% {
+                transform: scale(3);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
         }
 
         .strategy-container {
@@ -263,15 +296,47 @@
             transition: all 0.2s ease;
         }
 
-        .profile-card:hover { border-color: var(--primary); }
+        .profile-card:hover {
+            border-color: var(--primary);
+        }
 
-        .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .profile-ip { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--text-main); font-size: 18px; }
-        .profile-risk { font-weight: 800; color: var(--danger); font-size: 14px; text-transform: uppercase; }
-        
-        .profile-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
-        .profile-label { color: var(--secondary); font-weight: 600; }
-        .profile-val { color: var(--text-main); font-weight: 700; }
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .profile-ip {
+            font-family: 'JetBrains Mono';
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 18px;
+        }
+
+        .profile-risk {
+            font-weight: 800;
+            color: var(--danger);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .profile-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .profile-label {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .profile-val {
+            color: var(--text-main);
+            font-weight: 700;
+        }
 
         .profile-persona {
             margin-top: 12px;
@@ -284,11 +349,21 @@
             text-align: center;
         }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
     </style>
 </head>
+
 <body>
     <header class="dashboard-header">
         <div>
@@ -313,7 +388,8 @@
     <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
         <div class="card" style="padding: 20px;">
             <span class="card-label">TOTAL ATTACKS</span>
-            <div id="stat-attacks" style="font-size: 32px; font-weight: 900; color: var(--primary); margin-top: 5px;">0</div>
+            <div id="stat-attacks" style="font-size: 32px; font-weight: 900; color: var(--primary); margin-top: 5px;">0
+            </div>
         </div>
         <div class="card" style="padding: 20px;">
             <span class="card-label">ACTIVE SESSIONS</span>
@@ -360,21 +436,21 @@
         </div>
         <div class="card" style="padding: 20px;">
             <span class="card-label">Deception Fidelity</span>
-            <div id="stat-fidelity" style="font-size: 32px; font-weight: 900; color: #10B981; margin-top: 5px;">98%</div>
+            <div id="stat-fidelity" style="font-size: 32px; font-weight: 900; color: #10B981; margin-top: 5px;">98%
+            </div>
             <div style="font-size: 13px; color: var(--secondary); font-weight: 600;">Trust Coefficient</div>
         </div>
     </div>
 
     <div class="grid">
-        <!-- Geographic Coverage -->
+        <!-- Live Session Command Flow -->
         <div class="card span-2">
-            <span class="card-label">Geographic Dispersion [MAP]</span>
-            <div class="map-container" id="threatMap">
-                <svg viewBox="0 0 800 400" style="width: 100%; opacity: 0.1;">
-                    <path fill="currentColor" d="M100 100h600v200H100z" />
-                </svg>
-                <div id="mapHotspots"></div>
-                <div style="position: absolute; bottom: 20px; right: 20px; font-family: 'JetBrains Mono'; font-size: 14px; color: var(--secondary)">[ SPATIAL SENSORS ACTIVE ]</div>
+            <span class="card-label">Live Session Command Flow</span>
+            <div id="commandFlow"
+                style="height: 350px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;">
+                <div style="color: var(--secondary); text-align: center; padding: 60px 20px; font-style: italic;">
+                    Waiting for active sessions...
+                </div>
             </div>
         </div>
 
@@ -440,7 +516,8 @@
             <div class="strategy-container">
                 <div class="strategy-status" id="strategyStatus">
                     <div style="font-size: 13px; color: var(--secondary)">CURRENT ENGINE STATE:</div>
-                    <div id="rlState" style="font-weight: 800; font-size: 18px; color: var(--primary)">CALIBRATING...</div>
+                    <div id="rlState" style="font-weight: 800; font-size: 18px; color: var(--primary)">CALIBRATING...
+                    </div>
                 </div>
                 <div id="directiveList" class="directive-list">
                     <!-- Directives -->
@@ -457,11 +534,14 @@
             </div>
         </div>
 
-        <!-- Live Operations Feed -->
+        <!-- Attack Session Timeline -->
         <div class="card span-4">
-            <span class="card-label">Live Operation / Attack Feed [STDOUT]</span>
-            <div id="operational-terminal" style="background: #0F172A; color: #10B981; font-family: 'JetBrains Mono'; padding: 32px; border-radius: 16px; height: 400px; overflow-y: auto; font-size: 15px; line-height: 1.6; border: 1px solid #334155; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.5);">
-                <div id="terminalLines"></div>
+            <span class="card-label">Attack Session Timeline</span>
+            <div id="sessionTimeline"
+                style="height: 400px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6; padding: 16px;">
+                <div style="color: var(--secondary); text-align: center; padding: 80px 20px; font-style: italic;">
+                    No active attack sessions...
+                </div>
             </div>
         </div>
     </div>
@@ -474,18 +554,20 @@
             const ctxT = document.getElementById('timelineChart').getContext('2d');
             timelineChart = new Chart(ctxT, {
                 type: 'line',
-                data: { labels: [], datasets: [{ 
-                    label: 'Activity Density', 
-                    data: [], 
-                    borderColor: '#2563EB', 
-                    backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointBackgroundColor: '#2563EB'
-                }]},
-                options: { 
+                data: {
+                    labels: [], datasets: [{
+                        label: 'Activity Density',
+                        data: [],
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointBackgroundColor: '#2563EB'
+                    }]
+                },
+                options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } }
@@ -523,7 +605,7 @@
                 data: {
                     labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Impact', 'Collection'],
                     datasets: [{
-                        data: [0,0,0,0,0,0,0],
+                        data: [0, 0, 0, 0, 0, 0, 0],
                         backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
                         borderWidth: 0,
                         hoverOffset: 10
@@ -557,41 +639,67 @@
                 const vmDot = document.getElementById('microvm-signal');
                 if (stats.honeypot_active) honeyDot.classList.add('dot-pulse');
                 else honeyDot.classList.remove('dot-pulse');
-                
+
                 if (stats.microvm_active) vmDot.classList.add('dot-pulse');
                 else vmDot.classList.remove('dot-pulse');
 
                 // Core Metrics
                 document.getElementById('stat-total').innerText = stats.total_commands;
-                document.getElementById('stat-intent').innerText = stats.session_intel.length > 0 
-                    ? `${Math.round(stats.session_intel.reduce((a,b) => a + b.prob, 0) / stats.session_intel.length)}%`
+                document.getElementById('stat-intent').innerText = stats.session_intel.length > 0
+                    ? `${Math.round(stats.session_intel.reduce((a, b) => a + b.prob, 0) / stats.session_intel.length)}%`
                     : '0%';
-                
+
                 // System Vitality
                 const h = stats.system_health || {};
                 document.getElementById('stat-cpu').innerText = h.cpu_usage || '--';
                 document.getElementById('stat-ram').innerText = h.ram_usage || '--';
                 document.getElementById('stat-uptime').innerText = h.uptime || '--';
                 document.getElementById('stat-load').innerText = h.sensor_load || 'OPTIMAL';
-                
+
                 const portsHtml = (h.active_listeners || []).map(p => `
                     <span style="background: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; color: var(--primary); border: 1px solid var(--border);">${p}</span>
                 `).join('');
                 document.getElementById('active-ports').innerHTML = portsHtml;
-                
+
                 // Deception Fidelity
                 document.getElementById('stat-fidelity').innerText = `${stats.deception_strategy?.stealth_health || 98}%`;
 
-                // Geographic Dispersion Map
-                const hotspots = document.getElementById('mapHotspots');
-                hotspots.innerHTML = '';
-                stats.session_intel.forEach(profile => {
-                    const dot = document.createElement('div');
-                    dot.className = 'map-dot';
-                    dot.style.left = `${20 + Math.random() * 60}%`;
-                    dot.style.top = `${20 + Math.random() * 60}%`;
-                    hotspots.appendChild(dot);
-                });
+                // Live Session Command Flow
+                const commandFlow = document.getElementById('commandFlow');
+                const flowHtml = intel.slice(0, 15).map((ev, idx, arr) => {
+                    const time = ev.timestamp?.split('T')[1]?.substring(0, 8) || '--:--:--';
+                    const cmd = ev.cmd || '...';
+                    const tags = (ev.mitre_tags || []).map(t => t.id).join(', ');
+                    const host = ev.hostname || 'unknown';
+
+                    // Determine attack phase based on TTP
+                    let phase = 'RECON';
+                    let phaseColor = '#3B82F6'; // blue
+                    if (tags.includes('T1105') || tags.includes('T1021')) {
+                        phase = 'ACCESS';
+                        phaseColor = '#F59E0B'; // yellow
+                    } else if (tags.includes('T1059') || tags.includes('T1053')) {
+                        phase = 'EXEC/PERSIST';
+                        phaseColor = '#EF4444'; // red
+                    } else if (tags.includes('T1070') || tags.includes('T1486')) {
+                        phase = 'IMPACT';
+                        phaseColor = '#8B5CF6'; // purple
+                    }
+
+                    return `
+                        <div style="margin-bottom: 8px; padding: 8px 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid ${phaseColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="color: var(--secondary); font-size: 11px;">[${time}] ${host}</span>
+                                <span style="font-size: 10px; font-weight: 700; color: ${phaseColor}; background: ${phaseColor}20; padding: 2px 6px; border-radius: 4px;">${phase}</span>
+                            </div>
+                            <div style="color: var(--text-main); font-weight: 600; word-break: break-all;">
+                                <span style="color: #10B981;">➜</span> ${cmd}
+                            </div>
+                            ${tags ? `<div style="font-size: 10px; color: #7C3AED; margin-top: 2px;">${tags}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+                commandFlow.innerHTML = flowHtml || '<div style="color: var(--secondary); text-align: center; padding: 60px 20px;">No active sessions detected</div>';
 
                 // Requirement 2: Timeline
                 timelineChart.data.labels = stats.timeline.map(t => t.time);
@@ -615,9 +723,9 @@
                 radarChart.data.datasets[0].data = distributionChart.data.datasets[0].data;
                 radarChart.update();
 
-                const matrixHtml = Object.values(stats.ttp_counts).sort((a,b) => b.count - a.count).slice(0, 10).map(ttp => `
+                const matrixHtml = Object.values(stats.ttp_counts).sort((a, b) => b.count - a.count).slice(0, 10).map(ttp => `
                     <tr style="border-bottom: 1px solid var(--accent);">
-                        <td style="padding: 12px; font-family: 'JetBrains Mono'; color: var(--primary); font-weight: 700;">${ttp.name.split(' (')[0].substring(0,5)}</td>
+                        <td style="padding: 12px; font-family: 'JetBrains Mono'; color: var(--primary); font-weight: 700;">${ttp.name.split(' (')[0].substring(0, 5)}</td>
                         <td style="padding: 12px; font-weight: 600;">${ttp.name}</td>
                         <td style="padding: 12px; text-align: right; font-weight: 800; color: var(--danger);">${ttp.count}</td>
                     </tr>
@@ -647,21 +755,79 @@
                 document.getElementById('rlState').innerText = strat.rl_state || 'CALIBRATING...';
                 document.getElementById('stealthScore').innerText = `${strat.stealth_health}%`;
                 document.getElementById('stealthBar').style.width = `${strat.stealth_health}%`;
-                
+
                 const directiveHtml = (strat.directives || []).map(d => `
                     <li class="directive-item">${d}</li>
                 `).join('');
                 document.getElementById('directiveList').innerHTML = directiveHtml || '<div style="color:var(--secondary)">No active directives</div>';
 
-                // Requirement 1: Live Attack Feed
-                const terminalLines = intel.slice(0, 20).map(ev => `
-                    <div style="margin-bottom: 6px;">
-                        <span style="color: #64748B;">[${ev.timestamp?.split('T')[1].substring(0,8) || '--:--:--'}]</span>
-                        <span style="color: #64748B;"> root@aade:~$</span> ${ev.cmd || '...'}
-                        ${(ev.mitre_tags || []).map(t => `<span style="color: #7C3AED; font-size: 11px; font-weight: 700; margin-left: 8px;">[${t.id}]</span>`).join('')}
-                    </div>
-                `).join('');
-                document.getElementById('terminalLines').innerHTML = terminalLines;
+                // Attack Session Timeline
+                // Group events by source IP and build session trees
+                const sessions = {};
+                intel.forEach(ev => {
+                    const ip = ev.src_ip || '127.0.0.1';
+                    if (!sessions[ip]) {
+                        sessions[ip] = { events: [], startTime: ev.timestamp, migrated: false };
+                    }
+                    sessions[ip].events.push(ev);
+                    // Detect migration: if hostname changes from cowrie_entry to something else
+                    if (ev.hostname && ev.hostname !== 'cowrie_entry' && !sessions[ip].migrated) {
+                        sessions[ip].migrated = true;
+                        sessions[ip].migrationIndex = sessions[ip].events.length - 1;
+                    }
+                });
+
+                // Build timeline HTML for each session
+                let timelineHtml = '';
+                Object.entries(sessions).slice(0, 3).forEach(([ip, session]) => {
+                    const firstTime = new Date(session.events[0]?.timestamp || Date.now());
+                    const timeAgo = Math.floor((Date.now() - firstTime) / 60000);
+                    const timeStr = timeAgo < 1 ? 'just now' : `${timeAgo}m ago`;
+
+                    timelineHtml += `
+                        <div style="margin-bottom: 24px; border-left: 2px solid var(--border); padding-left: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 8px 12px; background: var(--accent); border-radius: 8px;">
+                                <span style="font-weight: 700; color: var(--primary);">${ip}</span>
+                                <span style="color: var(--secondary); font-size: 12px;">(${timeStr})</span>
+                                <span style="margin-left: auto; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; ${session.migrated ? 'background: #EF444420; color: #EF4444;' : 'background: #3B82F620; color: #3B82F6;'}">${session.migrated ? 'MICROVM' : 'COWRIE'}</span>
+                            </div>
+                    `;
+
+                    // Show up to 6 events per session
+                    session.events.slice(0, 6).forEach((ev, idx) => {
+                        const time = ev.timestamp?.split('T')[1]?.substring(0, 8) || '--:--:--';
+                        const cmd = ev.cmd || '...';
+                        const isMigration = session.migrated && idx === session.migrationIndex;
+
+                        if (isMigration) {
+                            timelineHtml += `
+                                <div style="margin: 12px 0; padding: 8px 12px; background: linear-gradient(90deg, #F59E1020, #EF444420); border-radius: 6px; border-left: 3px solid #F59E10;">
+                                    <span style="font-size: 12px; font-weight: 700; color: #F59E10;">🔥 ESCALATED TO MICROVM</span>
+                                    <span style="font-size: 11px; color: var(--secondary); margin-left: 8px;">${time}</span>
+                                </div>
+                            `;
+                        }
+
+                        const hostColor = ev.hostname === 'cowrie_entry' ? '#64748B' : '#10B981';
+                        const hostLabel = ev.hostname === 'cowrie_entry' ? '[COWRIE]' : '[MICROVM]';
+
+                        timelineHtml += `
+                            <div style="margin-bottom: 8px; padding: 6px 0; display: flex; align-items: baseline; gap: 8px;">
+                                <span style="color: var(--secondary); font-size: 11px; min-width: 70px;">${time}</span>
+                                <span style="font-size: 10px; color: ${hostColor}; background: ${hostColor}20; padding: 2px 6px; border-radius: 4px; min-width: 60px; text-align: center;">${hostLabel}</span>
+                                <span style="color: var(--text-main); word-break: break-all; flex: 1;">${cmd}</span>
+                            </div>
+                        `;
+                    });
+
+                    if (session.events.length > 6) {
+                        timelineHtml += `<div style="color: var(--secondary); font-size: 12px; padding: 8px 0;">... and ${session.events.length - 6} more commands</div>`;
+                    }
+
+                    timelineHtml += `</div>`;
+                });
+
+                document.getElementById('sessionTimeline').innerHTML = timelineHtml || '<div style="color: var(--secondary); text-align: center; padding: 80px 20px;">No active attack sessions...</div>';
 
                 // Dynamic Status
                 document.getElementById('system-mode').innerText = stats.mode;
@@ -684,4 +850,5 @@
         setInterval(update, 5000);
     </script>
 </body>
+
 </html>
