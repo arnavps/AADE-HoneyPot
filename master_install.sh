@@ -14,11 +14,12 @@ sudo apt update && sudo apt install -y \
   e2fsprogs squashfs-tools
 
 # 2. Directory Structure
-echo "[+] Initializing project directory structure..."
-mkdir -p ~/aade/logs
-mkdir -p ~/aade/kernels
-mkdir -p ~/aade/images
-mkdir -p ~/aade/cowrie
+AADE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[+] Initializing project directory structure in $AADE_DIR..."
+mkdir -p "$AADE_DIR/logs"
+mkdir -p "$AADE_DIR/kernels"
+mkdir -p "$AADE_DIR/images"
+mkdir -p "$AADE_DIR/cowrie"
 
 # 3. Python Environment & Core Dependencies
 echo "[+] Installing unified Python dependencies..."
@@ -47,24 +48,32 @@ if [ ! -f "/usr/local/bin/firecracker" ]; then
 fi
 
 # 6. Cowrie Honeypot Setup
-if [ ! -d "~/aade/cowrie/.git" ]; then
-    echo "[+] Cloning Cowrie honeypot..."
-    git clone https://github.com/cowrie/cowrie ~/aade/cowrie
-    cd ~/aade/cowrie
+COWRIE_DIR="$AADE_DIR/cowrie"
+if [ ! -d "$COWRIE_DIR/.git" ]; then
+    echo "[+] Cloning Cowrie honeypot into $COWRIE_DIR..."
+    git clone https://github.com/cowrie/cowrie "$COWRIE_DIR"
+    cd "$COWRIE_DIR"
+    
+    # Create venv to avoid "externally-managed-environment" error
+    echo "[+] Setting up Cowrie virtual environment..."
     python3 -m venv cowrie-env
     source cowrie-env/bin/activate
     pip install --upgrade pip
     pip install -r requirements.txt
     pip install -e .
-    cp etc/cowrie.cfg.dist etc/cowrie.cfg
-    cd ~-
+    
+    if [ ! -f "etc/cowrie.cfg" ]; then
+        cp etc/cowrie.cfg.dist etc/cowrie.cfg
+    fi
+    deactivate
+    cd "$AADE_DIR"
 fi
 
 # 7. Default Kernel for MicroVMs
-if [ ! -f "~/aade/kernels/vmlinux.bin" ]; then
+if [ ! -f "$AADE_DIR/kernels/vmlinux.bin" ]; then
     echo "[+] Fetching Firecracker default kernel..."
     curl -fsSL https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin \
-      -o ~/aade/kernels/vmlinux.bin
+      -o "$AADE_DIR/kernels/vmlinux.bin"
 fi
 
 echo ""

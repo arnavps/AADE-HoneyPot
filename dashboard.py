@@ -81,9 +81,13 @@ class DashboardAPI:
         POSSIBLE_COWRIE_PATHS = [
             os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json'),
             os.path.join(BASE_DIR, 'cowrie/var/log/cowrie/cowrie.json.1'),
-            os.path.join(BASE_DIR, 'var/log/cowrie/cowrie.json'), # If running from cowrie dir
+            os.path.join(BASE_DIR, 'cowrie/cowrie.json'),
             os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
-            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+            os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
+            os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
+            os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
+            '/var/log/cowrie/cowrie.json',
+            '/home/cowrie/cowrie/var/log/cowrie/cowrie.json'
         ]
         
         found_cowrie = False
@@ -313,22 +317,42 @@ def stats():
 
 @app.route('/api/debug')
 def debug_diagnostic():
+    # Use the same logic as the ingestion path
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    # Same logic as get_latest_intel
-    local_cowrie = os.path.join(base_dir, 'cowrie/var/log/cowrie/cowrie.json')
-    checked_path = local_cowrie if os.path.exists(local_cowrie) else os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+    possible_paths = [
+        os.path.join(base_dir, 'cowrie/var/log/cowrie/cowrie.json'),
+        os.path.join(base_dir, 'var/log/cowrie/cowrie.json'),
+        os.path.expanduser('~/Desktop/AADE-HoneyPot/cowrie/var/log/cowrie/cowrie.json'),
+        os.path.expanduser('~/Desktop/cowrie/var/log/cowrie/cowrie.json'),
+        os.path.expanduser('~/cowrie/var/log/cowrie/cowrie.json'),
+        os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json'),
+        '/var/log/cowrie/cowrie.json',
+        '/home/cowrie/cowrie/var/log/cowrie/cowrie.json'
+    ]
     
+    found_path = None
+    for p in possible_paths:
+        if os.path.exists(p):
+            found_path = p
+            break
+            
     status = {
         "base_dir": base_dir,
-        "cowrie_path_configured": checked_path,
-        "file_exists": os.path.exists(checked_path),
-        "file_permissions": oct(os.stat(checked_path).st_mode)[-3:] if os.path.exists(checked_path) else "N/A",
+        "searched_paths": possible_paths,
+        "cowrie_path_found": found_path,
+        "file_exists": found_path is not None,
         "last_5_lines": []
     }
     
-    if status["file_exists"]:
-        with open(checked_path, 'r') as f:
-            status["last_5_lines"] = f.readlines()[-5:]
+    if found_path:
+        try:
+            status["file_permissions"] = oct(os.stat(found_path).st_mode)[-3:]
+            with open(found_path, 'r') as f:
+                status["last_5_lines"] = f.readlines()[-5:]
+        except Exception as e:
+            status["error"] = str(e)
+            
+    return jsonify(status)
             
     return jsonify(status)
 
