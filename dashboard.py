@@ -146,9 +146,6 @@ class DashboardAPI:
 def index():
     return render_template('index.html')
 
-@app.route('/api/intel')
-def intel():
-    return jsonify(DashboardAPI.get_latest_intel(100))
 
 @app.route('/api/ingest', methods=['POST'])
 def ingest():
@@ -363,7 +360,7 @@ def debug_diagnostic():
 def intel():
     try:
         limit = int(request.args.get('limit', 100))
-        data = intel_master.get_latest_intel(limit=limit)
+        data = DashboardAPI.get_latest_intel(limit=limit)
         return jsonify({
             "events": data,
             "server_time": datetime.utcnow().isoformat() + 'Z'
