@@ -69,7 +69,17 @@ mitmproxy -p 8080 -s c2_sinkhole.py --ssl-insecure
 **Terminal 3:** Launch the Cowrie honeypot (from `~/aade/cowrie` directory created by installer)
 
 ```bash
+git clone https://github.com/cowrie/cowrie
+cd cowrie
+
+python3 -m venv cowrie-env
+source cowrie-env/bin/activate
+
+python -m pip install --upgrade pip
 python -m pip install -e .
+
+cp etc/cowrie.cfg.dist cowrie.cfg
+
 cowrie start
 ```
 
