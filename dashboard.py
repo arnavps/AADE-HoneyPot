@@ -91,9 +91,10 @@ class DashboardAPI:
         ]
         
         if os.path.exists(COWRIE_PATH):
+            print(f"[*] Dashboard: Reading Cowrie logs from {COWRIE_PATH}")
             log_paths.append(COWRIE_PATH)
         else:
-            print(f"DEBUG: Cowrie log not found at {COWRIE_PATH}")
+            print(f"[!] Dashboard Error: Cowrie log NOT found at {COWRIE_PATH}")
         for alt_path in ALT_COWRIE_PATHS:
             if os.path.exists(alt_path):
                 log_paths.append(alt_path)
@@ -310,6 +311,27 @@ def stats():
         "deception_strategy": deception_strategy,
         "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5]
     })
+
+@app.route('/api/debug')
+def debug_diagnostic():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Same logic as get_latest_intel
+    local_cowrie = os.path.join(base_dir, 'cowrie/var/log/cowrie/cowrie.json')
+    checked_path = local_cowrie if os.path.exists(local_cowrie) else os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
+    
+    status = {
+        "base_dir": base_dir,
+        "cowrie_path_configured": checked_path,
+        "file_exists": os.path.exists(checked_path),
+        "file_permissions": oct(os.stat(checked_path).st_mode)[-3:] if os.path.exists(checked_path) else "N/A",
+        "last_5_lines": []
+    }
+    
+    if status["file_exists"]:
+        with open(checked_path, 'r') as f:
+            status["last_5_lines"] = f.readlines()[-5:]
+            
+    return jsonify(status)
 
 if __name__ == '__main__':
     print("[*] AADE Intelligent Dashboard Running on Port 5000...")
