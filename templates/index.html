@@ -782,9 +782,15 @@
                 // Build timeline HTML for each session
                 let timelineHtml = '';
                 Object.entries(sessions).slice(0, 3).forEach(([ip, session]) => {
-                    const firstTime = new Date(session.events[0]?.timestamp || Date.now());
+                    const parseTs = (ts) => {
+                        if (!ts) return new Date();
+                        // If it's pure ISO without tz, assume UTC
+                        if (ts.includes('T') && !ts.includes('Z') && !ts.includes('+')) return new Date(ts + 'Z');
+                        return new Date(ts);
+                    };
+                    const firstTime = parseTs(session.events[0]?.timestamp);
                     const timeAgo = Math.floor((Date.now() - firstTime) / 60000);
-                    const timeStr = timeAgo < 1 ? 'just now' : `${timeAgo}m ago`;
+                    const timeStr = timeAgo < 1 ? 'just now' : (timeAgo > 1440 ? `${Math.floor(timeAgo/1440)}d ago` : `${timeAgo}m ago`);
 
                     timelineHtml += `
                         <div style="margin-bottom: 24px; border-left: 2px solid var(--border); padding-left: 16px;">

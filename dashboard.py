@@ -128,6 +128,30 @@ def index():
 def intel():
     return jsonify(DashboardAPI.get_latest_intel(100))
 
+@app.route('/api/ingest', methods=['POST'])
+def ingest():
+    """Receives logs pushed from the Kali VM forwarder."""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"status": "error", "message": "No data"}), 400
+        
+        # Normalize and map TTPs if not present
+        if 'cmd' in data and 'mitre_tags' not in data:
+            data['mitre_tags'] = map_command_to_ttpx(data['cmd'])
+        
+        if 'timestamp' not in data:
+            data['timestamp'] = datetime.now().isoformat()
+            
+        REMOTE_EVENTS.insert(0, data)
+        # Keep buffer to a reasonable size
+        if len(REMOTE_EVENTS) > 1000:
+            REMOTE_EVENTS.pop()
+            
+        return jsonify({"status": "success", "count": len(REMOTE_EVENTS)}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/stats')
 def stats():
     events = DashboardAPI.get_latest_intel(2000) # Get more events for stats

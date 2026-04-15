@@ -29,11 +29,12 @@ def forward_line(line):
         
         # Only forward if it's an actionable event
         if 'cmd' in ev or 'eventid' in ev:
-            response = requests.post(DASHBOARD_URL, json=ev, timeout=2)
+            print(f"[*] Attempting to send event {ev.get('cmd', ev.get('eventid'))} to {DASHBOARD_URL}...")
+            response = requests.post(DASHBOARD_URL, json=ev, timeout=5)
             if response.status_code == 200:
-                print(f"[✓] Forwarded: {ev.get('cmd', ev.get('eventid'))}")
+                print(f"[✓] Successfully forwarded to Windows Dashboard.")
             else:
-                print(f"[!] Dashboard error: {response.status_code}")
+                print(f"[!] Dashboard responded with error: {response.status_code}")
     except Exception as e:
         print(f"[!] Forwarding error: {e}")
 
