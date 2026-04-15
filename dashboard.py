@@ -180,6 +180,8 @@ def stats():
         "Execution": ["T1059.004", "T1059.006", "T1053.003"],
         "Persistence": ["T1053.003", "T1136.001"],
         "Defense Evasion": ["T1070", "T1562.004", "T1222.002"],
+        "Discovery": ["T1083", "T1057", "T1016", "T1033", "T1082"],
+        "Lateral Movement": ["T1021.004", "T1095"],
         "Impact": ["T1486", "T1496", "T1498"],
         "Collection": ["T1003", "T1557"]
     }
@@ -189,6 +191,17 @@ def stats():
         for tactic, tids in tactic_groups.items():
             if tid in tids:
                 vector_distribution[tactic] += data['count']
+
+    # Threat Velocity (Events in last 15 mins)
+    threat_velocity = 0
+    for e in events:
+        try:
+            ts_str = e.get('timestamp', '')
+            if ts_str:
+                ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+                if (now.timestamp() - ts.timestamp()) < 900:
+                    threat_velocity += 1
+        except: pass
 
     # Session Intelligence
     session_intel = []
@@ -239,6 +252,7 @@ def stats():
         "total_commands": len(events),
         "total_attacks": len([e for e in events if e.get('cmd')]),
         "active_sessions": len(active_ips),
+        "threat_velocity": threat_velocity,
         "unique_ips": len(unique_ips),
         "ghost_responses": llm_hits,
         "honeypot_active": hp_active,
@@ -246,6 +260,7 @@ def stats():
         "mode": "HYBRID_DECEPTION" if high_interaction_active else "LOW_INTERACTION_DECEPTION",
         "timeline": [{"time": k, "count": timeline[k]} for k in sorted(timeline.keys())],
         "vector_distribution": vector_distribution,
+        "ttp_counts": ttp_counts,
         "system_health": DashboardAPI.get_system_health(),
         "deception_strategy": deception_strategy,
         "session_intel": sorted(session_intel, key=lambda x: x['prob'], reverse=True)[:5]

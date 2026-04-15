@@ -579,10 +579,10 @@
             radarChart = new Chart(ctxR, {
                 type: 'radar',
                 data: {
-                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Impact', 'Collection'],
+                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Discovery', 'Lateral Mov', 'Impact', 'Collection'],
                     datasets: [{
                         label: 'Intensity',
-                        data: [0, 0, 0, 0, 0, 0, 0],
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0],
                         backgroundColor: 'rgba(37, 99, 235, 0.2)',
                         borderColor: '#2563EB',
                         borderWidth: 2,
@@ -603,10 +603,10 @@
             distributionChart = new Chart(ctxD, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Impact', 'Collection'],
+                    labels: ['Recon', 'Access', 'Execution', 'Persistence', 'Evasion', 'Discovery', 'Lateral Mov', 'Impact', 'Collection'],
                     datasets: [{
-                        data: [0, 0, 0, 0, 0, 0, 0],
-                        backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#F43F5E', '#8B5CF6', '#EC4899'],
                         borderWidth: 0,
                         hoverOffset: 10
                     }]
@@ -644,7 +644,7 @@
                 else vmDot.classList.remove('dot-pulse');
 
                 // Core Metrics
-                document.getElementById('stat-total').innerText = stats.total_commands;
+                document.getElementById('stat-total').innerText = stats.threat_velocity || 0;
                 document.getElementById('stat-intent').innerText = stats.session_intel.length > 0
                     ? `${Math.round(stats.session_intel.reduce((a, b) => a + b.prob, 0) / stats.session_intel.length)}%`
                     : '0%';
@@ -714,6 +714,8 @@
                     dist["Execution"] || 0,
                     dist["Persistence"] || 0,
                     dist["Defense Evasion"] || 0,
+                    dist["Discovery"] || 0,
+                    dist["Lateral Movement"] || 0,
                     dist["Impact"] || 0,
                     dist["Collection"] || 0
                 ];
