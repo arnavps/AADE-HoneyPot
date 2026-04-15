@@ -324,7 +324,45 @@ arpspoof -i eth0 -t 10.0.0.5 10.0.0.1
 
 ---
 
-## 3. What is AADE?
+## 3. Dashboard Components Guide
+
+The AADE Dashboard provides real-time visibility into attacker activity across 15+ specialized components:
+
+### Top Stats Row
+
+| Component | Description |
+|-----------|-------------|
+| **TOTAL ATTACKS** | Total number of commands/actions executed by attackers |
+| **ACTIVE SESSIONS** | Attackers currently connected (active within last 15 minutes) |
+| **UNIQUE IPs** | Count of distinct attacker source IP addresses |
+| **GHOST RESPONSES** | Times the LLM synthesized fake responses to deceive attackers |
+
+### Core Telemetry Row
+
+| Component | Description |
+|-----------|-------------|
+| **SYSTEM VITALITY** | Host health metrics: CPU %, RAM usage, uptime, sensor load status |
+| **THREAT VELOCITY** | Attack intensity measured in events per 15-minute window |
+| **ADVERSARY INTENT** | Probability percentage that attackers are humans vs automated bots |
+| **DECEPTION FIDELITY** | Trust coefficient indicating how "real" the honeypot appears |
+
+### Main Analysis Panels
+
+| Component | Description |
+|-----------|-------------|
+| **LIVE SESSION COMMAND FLOW** | Real-time attack progression with color-coded phase badges: RECON (blue) → ACCESS (yellow) → EXEC/PERSIST (red) → IMPACT (purple) |
+| **ATTACK TIMELINE** | 24-hour line chart showing attack frequency patterns over time |
+| **VECTOR DISTRIBUTION** | Doughnut chart displaying which MITRE ATT&CK tactics attackers use most |
+| **TOP MITRE DETECTION VECTORS** | Radar chart visualizing attack intensity across 7 tactic categories |
+| **MITRE TECHNIQUE MATRIX** | Detailed table mapping specific MITRE ATT&CK techniques to observed hit counts |
+| **ACTIVE ADVERSARY PROFILES** | Per-attacker cards showing: commands run, TTPs triggered, session duration, and persona classification (Unknown Crawler → Automated Recon Bot → Credential Sprayer → Skilled Human Operator → Advanced Persistent Threat) |
+| **ACTIVE SURFACE** | Currently listening network ports and services exposed to attackers |
+| **TACTICAL RESPONSE STRATEGY** | RL Engine status: current policy state, stealth integrity percentage, and active tactical directives |
+| **ATTACK SESSION TIMELINE** | Complete attack narratives per IP: command sequences with [COWRIE] vs [MICROVM] badges and 🔥 ESCALATION markers showing when attackers were transparently migrated to the high-interaction environment |
+
+---
+
+## 4. What is AADE?
 
 AADE is a **fully autonomous adaptive deception platform** that traps and studies attackers without ever revealing it's a honeypot. Unlike static honeypots that experienced attackers can fingerprint in seconds, AADE:
 
@@ -337,7 +375,7 @@ AADE is a **fully autonomous adaptive deception platform** that traps and studie
 
 ---
 
-## 4. The Problem It Solves
+## . The Problem It Solves
 
 Traditional honeypots are detected trivially:
 - Static filesystem with no real user history → fingerprinted immediately
@@ -349,7 +387,7 @@ AADE addresses all four. The attacker gets a live kernel, a realistic filesystem
 
 ---
 
-## 5. System Architecture
+## . System Architecture
 
 ```
 Attacker
@@ -395,7 +433,7 @@ Attacker
 
 ---
 
-## 6. Components
+## 7. Components
 
 | File | Role |
 |------|------|
@@ -415,7 +453,7 @@ Attacker
 
 ---
 
-## 7. Tech Stack
+## 8. Tech Stack
 
 | Tool / Library | Purpose |
 |----------------|---------|
@@ -433,7 +471,7 @@ Attacker
 
 ---
 
-## 8. Key Innovations
+## 9. Key Innovations
 
 **Live MicroVM Migration**
 When Cowrie detects a serious attacker (e.g., they run `wget`, `curl`, or attempt persistence), the orchestrator transparently migrates the session into a real Firecracker MicroVM. The attacker never notices — they think they just got a shell on a real box.
