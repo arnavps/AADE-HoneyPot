@@ -5,12 +5,15 @@ import psutil
 import time
 import platform
 from datetime import datetime
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO
 from ttp_mapper import map_command_to_ttpx
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# In-memory store for events pushed from remote sensors (Kali VM)
+REMOTE_EVENTS = []
 
 LOG_DIR = os.path.expanduser('~/aade/logs')
 app.config['SECRET_KEY'] = 'aade-advanced-secret!'
@@ -110,7 +113,12 @@ class DashboardAPI:
             except: continue
 
         events.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        return events[:limit]
+        
+        # Merge with remote events from Kali VM
+        all_events = REMOTE_EVENTS + events
+        all_events.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        return all_events[:limit]
 
 @app.route('/')
 def index():
