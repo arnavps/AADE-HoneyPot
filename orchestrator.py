@@ -144,11 +144,24 @@ class MasterOrchestrator:
                         # 2.5 GHOST RESPONSE LOGIC (Deception Zone)
                         if 30 <= self.risk_score < 60:
                             print(f"[*] Ghost Mode: Risk {self.risk_score} is in deception zone. Requesting AI synthesis...")
-                            # In a real integration, this would be served to the attacker via a proxy
                             fake_out = self.llm.synthesize_output(cmd, {"user": "root", "cwd": "/root"})
                             print(f"[Ghost AI Output]:\n{fake_out}")
-                            # Mark as synthesized for dashboard stats
-                            # (Simulating log update for dashboard hits)
+                            
+                            # Log back to cowrie.json so the dashboard sees the "Ghost Hit"
+                            try:
+                                ghost_event = {
+                                    "eventid": "aade.ghost_response",
+                                    "timestamp": time.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                                    "input": cmd,
+                                    "output": fake_out,
+                                    "llm_synthesized": True,
+                                    "risk_score": self.risk_score
+                                }
+                                with open(COWRIE_LOG, 'a') as f:
+                                    f.write(json.dumps(ghost_event) + "\n")
+                                print(f"[+] Ghost Response logged to Dashboard stats.")
+                            except Exception as e:
+                                print(f"[!] Dashboard logging failed: {e}")
                         
                         # SPECIAL CASE: EXIT
                         if cmd == "exit" or cmd == "logout":

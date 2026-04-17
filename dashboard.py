@@ -123,6 +123,10 @@ class DashboardAPI:
                                     ev['cmd'] = ev.get('input', '')
                                     ev['hostname'] = 'cowrie_entry'
                                     ev['user'] = ev.get('username', 'root')
+                                elif ev['eventid'] == 'aade.ghost_response':
+                                    ev['cmd'] = ev.get('input', '')
+                                    ev['hostname'] = 'GHOST_AI'
+                                    ev['user'] = 'AI_SYNTHESIZER'
                                 elif ev['eventid'] == 'cowrie.session.connect':
                                     ev['cmd'] = '[CONNECTED]'
                                     ev['hostname'] = 'cowrie_entry'
