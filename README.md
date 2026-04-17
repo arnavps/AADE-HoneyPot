@@ -66,10 +66,22 @@ python3 vsock_listener.py
 mitmproxy -p 8080 -s c2_sinkhole.py --ssl-insecure
 ```
 
-**Terminal 3:** Launch the Cowrie honeypot (from `~/aade/cowrie` directory created by installer)
+**Terminal 3:** Launch the Cowrie honeypot (using the virtual environment created by the installer)
 
 ```bash
+#Starting for the First Time
+cd ~/Desktop/AADE-HoneyPot/cowrie
+source cowrie-env/bin/activate
 pip install -e .
+cowrie start
+```
+```bash
+#Starting Again
+# 1. Enter the Cowrie directory
+cd ~/Desktop/AADE-HoneyPot/cowrie
+# 2. Activate the virtual environment
+source cowrie-env/bin/activate
+# 3. Start the service
 cowrie start
 
 ```
