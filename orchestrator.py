@@ -121,43 +121,55 @@ class MasterOrchestrator:
             print(f"[!] Warning: Cowrie log not found: {COWRIE_LOG}")
             # return # Testing: don't return so user can see script logic
 
-        # In a real environment, use tailer.follow(open(COWRIE_LOG))
-        # This skeleton simulates the event loop
-        for line in tailer.follow(open(COWRIE_LOG)) if os.path.exists(COWRIE_LOG) else []:
-            try:
-                event = json.loads(line)
-                if event.get("eventid") == "cowrie.command.input":
-                    cmd = event.get("input", "")
-                    self.cmd_count += 1
+        # Open log file for follow
+        print(f"[*] Orchestrator: Actively tailing {COWRIE_LOG}...")
+        
+        with open(COWRIE_LOG, 'r') as log_file:
+            for line in tailer.follow(log_file):
+                try:
+                    event = json.loads(line)
                     
-                    # 1. Map to MITRE TTPs
-                    ttps = map_command_to_ttpx(cmd)
-                    if ttps:
-                        print(f"[!] TTP Detected: {ttps[0]['name']} ({ttps[0]['id']})")
-                        self.max_ttp_severity += 5 
-                    
-                    # 2. Update Intelligence State
-                    self.calculate_metrics(self.cmd_count, ttps)
-                    duration = time.time() - self.session_start
-                    
-                    # 3. RL AGENT DECISION
-                    action = self.rl_agent.decide(
-                        self.cmd_count, 
-                        self.max_ttp_severity, 
-                        duration, 
-                        self.risk_score, 
-                        human_prob=self.human_probability
-                    )
-                    
-                    if action == 1: # ESCALATE
-                        print(f"[*] RL ACTION: ESCALATE (Human Prob: {self.human_probability}%)")
-                        self.start_firecracker()
-                    elif action == 2: # TERMINATE
-                        print(f"[*] RL ACTION: TERMINATE (Risk: {self.risk_score})")
-                        # Logic to block IP or kill session
-                        break
-            except Exception as e:
-                pass
+                    # LOG EVERY COMMAND SEEN
+                    if event.get("eventid") == "cowrie.command.input":
+                        cmd = event.get("input", "")
+                        self.cmd_count += 1
+                        
+                        # 1. Map to MITRE TTPs
+                        ttps = map_command_to_ttpx(cmd)
+                        ttp_id = ttps[0]['id'] if ttps else "None"
+                        ttp_name = ttps[0]['name'] if ttps else "No TTP Match"
+                        
+                        print(f"\n[>] Command: {cmd}")
+                        print(f"    - TTP: {ttp_name} ({ttp_id})")
+                        
+                        if ttps:
+                            self.max_ttp_severity += 5 
+                        
+                        # 2. Update Intelligence State
+                        self.calculate_metrics(self.cmd_count, ttps)
+                        duration = time.time() - self.session_start
+                        
+                        print(f"    - Risk Score: {self.risk_score}/100")
+                        print(f"    - Human Prob: {self.human_probability}%")
+                        
+                        # 3. RL AGENT DECISION
+                        action = self.rl_agent.decide(
+                            self.cmd_count, 
+                            self.max_ttp_severity, 
+                            duration, 
+                            self.risk_score, 
+                            human_prob=self.human_probability
+                        )
+                        
+                        if action == 1: # ESCALATE
+                            print(f"\n[!!!] DECISION: ESCALATE TO MICROVM")
+                            self.start_firecracker()
+                        elif action == 2: # TERMINATE
+                            print(f"\n[!!!] DECISION: TERMINATE SESSION")
+                            break
+                except Exception as e:
+                    # print(f"[debug] skip non-json or error: {e}")
+                    pass
 
 if __name__ == '__main__':
     try:
