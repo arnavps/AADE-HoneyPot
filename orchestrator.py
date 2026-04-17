@@ -141,6 +141,15 @@ class MasterOrchestrator:
                         print(f"    - Risk Score: {self.risk_score}/100")
                         print(f"    - Human Prob: {self.human_probability}%")
                         
+                        # 2.5 GHOST RESPONSE LOGIC (Deception Zone)
+                        if 30 <= self.risk_score < 60:
+                            print(f"[*] Ghost Mode: Risk {self.risk_score} is in deception zone. Requesting AI synthesis...")
+                            # In a real integration, this would be served to the attacker via a proxy
+                            fake_out = self.llm.synthesize_output(cmd, {"user": "root", "cwd": "/root"})
+                            print(f"[Ghost AI Output]:\n{fake_out}")
+                            # Mark as synthesized for dashboard stats
+                            # (Simulating log update for dashboard hits)
+                        
                         # SPECIAL CASE: EXIT
                         if cmd == "exit" or cmd == "logout":
                             print("[*] Attacker initiated EXIT. Cleaning up...")

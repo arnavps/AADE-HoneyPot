@@ -337,6 +337,7 @@ arpspoof -i eth0 -t 10.0.0.5 10.0.0.1
 
 ---
 
+
 ## 3. Dashboard Components Guide
 
 The AADE Dashboard provides real-time visibility into attacker activity across 15+ specialized components:
