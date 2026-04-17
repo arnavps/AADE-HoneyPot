@@ -92,28 +92,20 @@ class MasterOrchestrator:
         for d in decoys:
             print(f"[+] Artifact Injected: {d['path']} (Size: {len(d['content'])} bytes)")
 
-    def start_firecracker(self):
+    def stop_firecracker(self):
         if self.vm_proc:
-            print("[!] Firecracker: VM already running.")
-            return
-
-        print("[*] Firecracker: Launching MicroVM via RL Decision...")
-        # (Standard Firecracker launch logic here as in original orchestrator)
-        # Using subprocess for simplicity in this advanced skeleton
-        config = {
-            "boot-source": {"kernel_image_path": KERNEL_PATH, "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"},
-            "drives": [{"drive_id": "rootfs", "path_on_host": ROOTFS_PATH, "is_root_device": True, "is_read_only": False}],
-            "machine-config": {"vcpu_count": 2, "mem_size_mib": 512},
-            "vsock": {"guest_cid": 4, "uds_path": "/tmp/vsock.sock"}
-        }
-        with open('/tmp/vmconfig.json', 'w') as f:
-            json.dump(config, f)
-
-        try:
-            self.vm_proc = subprocess.Popen(['firecracker', '--no-api', '--config-file', '/tmp/vmconfig.json'])
-            print("[+] MicroVM Handoff Successful.")
-        except Exception as e:
-            print(f"[!] Firecracker Launch Failed: {e}")
+            print("[*] Firecracker: Terminating MicroVM and cleaning up resources...")
+            try:
+                self.vm_proc.terminate()
+                self.vm_proc.wait(timeout=5)
+                print("[+] MicroVM Shutdown Successful.")
+            except Exception as e:
+                print(f"[!] Error stopping VM: {e}")
+                try: self.vm_proc.kill()
+                except: pass
+            self.vm_proc = None
+        else:
+            print("[!] Firecracker: No active VM to stop.")
 
     def monitor_cowrie(self):
         print("[*] AADE: Monitoring Cowrie for Adaptive Decision Loop...")
@@ -129,9 +121,9 @@ class MasterOrchestrator:
                 try:
                     event = json.loads(line)
                     
-                    # LOG EVERY COMMAND SEEN
+                    # HANDLE COMMANDS
                     if event.get("eventid") == "cowrie.command.input":
-                        cmd = event.get("input", "")
+                        cmd = event.get("input", "").strip()
                         self.cmd_count += 1
                         
                         # 1. Map to MITRE TTPs
@@ -142,9 +134,6 @@ class MasterOrchestrator:
                         print(f"\n[>] Command: {cmd}")
                         print(f"    - TTP: {ttp_name} ({ttp_id})")
                         
-                        if ttps:
-                            self.max_ttp_severity += 5 
-                        
                         # 2. Update Intelligence State
                         self.calculate_metrics(self.cmd_count, ttps)
                         duration = time.time() - self.session_start
@@ -152,6 +141,12 @@ class MasterOrchestrator:
                         print(f"    - Risk Score: {self.risk_score}/100")
                         print(f"    - Human Prob: {self.human_probability}%")
                         
+                        # SPECIAL CASE: EXIT
+                        if cmd == "exit" or cmd == "logout":
+                            print("[*] Attacker initiated EXIT. Cleaning up...")
+                            self.stop_firecracker()
+                            continue
+
                         # 3. RL AGENT DECISION
                         action = self.rl_agent.decide(
                             self.cmd_count, 
@@ -162,11 +157,19 @@ class MasterOrchestrator:
                         )
                         
                         if action == 1: # ESCALATE
-                            print(f"\n[!!!] DECISION: ESCALATE TO MICROVM")
-                            self.start_firecracker()
+                            if not self.vm_proc:
+                                print(f"\n[!!!] DECISION: ESCALATE TO MICROVM")
+                                self.start_firecracker()
                         elif action == 2: # TERMINATE
                             print(f"\n[!!!] DECISION: TERMINATE SESSION")
+                            self.stop_firecracker()
                             break
+
+                    # HANDLE SESSION CLOSED
+                    elif event.get("eventid") == "cowrie.session.closed":
+                        print("\n[*] Detected Cowrie Session Closure. Stopping VM...")
+                        self.stop_firecracker()
+
                 except Exception as e:
                     # print(f"[debug] skip non-json or error: {e}")
                     pass
