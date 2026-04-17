@@ -96,7 +96,12 @@ python3 dashboard.py
 **Terminal 5:** Launch the Orchestrator
 
 ```bash
+# Pull the safe, lightweight model
+ollama pull phi3:mini
+
+# Restart your Orchestrator
 python3 orchestrator.py
+
 ```
 
 When the attacker connects to Cowrie and executes a suspicious command, the **Orchestrator** triggers live-migration from Cowrie into an active Firecracker MicroVM. Any actions inside the MicroVM are piped out to the host via **AF_VSOCK**. The **Dashboard** actively polls the `.jsonl` logs to show you what's happening live using MITRE ATT&CK mappings.
