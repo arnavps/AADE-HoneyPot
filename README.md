@@ -352,6 +352,14 @@ arpspoof -i eth0 -t 10.0.0.5 10.0.0.1
 **For Ghost Responses**
 ```bash
 netstat -antp
+
+ipconfig
+
+ip addr
+
+cat /etc/passwd
+
+ls -la/root
 ```
 ---
 
