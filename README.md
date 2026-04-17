@@ -336,7 +336,12 @@ arpspoof -i eth0 -t 10.0.0.5 10.0.0.1
 **Trigger:** **Human Environment** (Deep High-Interaction).
 
 ---
-
+ 
+**For Ghost Responses**
+```bash
+netstat -antp
+```
+---
 
 ## 3. Dashboard Components Guide
 
