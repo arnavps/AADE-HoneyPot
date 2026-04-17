@@ -56,7 +56,7 @@ class MasterOrchestrator:
             print(f"[!] Orchestrator: Warning! Cowrie log not found at {COWRIE_LOG}")
         
         self.rl_agent = RLAgent("aade_agent.zip")
-        self.llm = LLMSynthesizer(provider="ollama")
+        self.llm = LLMSynthesizer(provider="ollama", model="phi3:mini")
         self.session_start = time.time()
         self.cmd_count = 0
         self.max_ttp_severity = 0

@@ -11,7 +11,7 @@ class LLMSynthesizer:
         self.provider = provider.lower()
         self.api_key = os.getenv("OPENAI_API_KEY", "your-api-key-here")
         self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        self.model = model or ("gpt-4" if provider == "openai" else "llama3")
+        self.model = model or ("gpt-4" if provider == "openai" else "phi3:mini")
 
     def synthesize_output(self, command, context=None):
         """
@@ -85,6 +85,6 @@ class LLMSynthesizer:
 
 if __name__ == '__main__':
     # Test stub
-    synth = LLMSynthesizer(provider="ollama")
+    synth = LLMSynthesizer(provider="ollama", model="phi3:mini")
     print(synth.synthesize_output("ls -la /root", {"user": "devuser", "cwd": "/home/devuser"}))
     print(json.dumps(synth.generate_decoy_files(), indent=2))
