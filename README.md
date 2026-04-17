@@ -96,9 +96,16 @@ python3 dashboard.py
 **Terminal 5:** Launch the Orchestrator
 
 ```bash
+# Starting for the first time
 # Pull the safe, lightweight model
 ollama pull phi3:mini
 
+# Restart your Orchestrator
+python3 orchestrator.py
+
+```
+```bash
+# Starting the system again
 # Restart your Orchestrator
 python3 orchestrator.py
 
