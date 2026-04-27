@@ -5,6 +5,7 @@ from mitmproxy import http
 
 LOG_DIR = os.path.expanduser('~/aade/logs')
 
+
 def request(flow: http.HTTPFlow):
     os.makedirs(LOG_DIR, exist_ok=True)
     today = datetime.now().strftime('%Y-%m-%d')
