@@ -9,6 +9,7 @@ from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO
 from ttp_mapper import map_command_to_ttpx
 
+
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
