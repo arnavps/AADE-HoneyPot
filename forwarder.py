@@ -6,7 +6,6 @@ import glob
 from datetime import datetime
 
 # --- CONFIGURATION ---
-# Replace with your Windows Host IP reachable from Kali
 DASHBOARD_URL = 'http://127.0.0.1:5000/api/ingest'
 COWRIE_LOG = os.path.expanduser('~/aade/cowrie/var/log/cowrie/cowrie.json')
 AADE_LOG_DIR = os.path.expanduser('~/aade/logs')
