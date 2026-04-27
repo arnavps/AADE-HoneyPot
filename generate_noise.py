@@ -51,7 +51,6 @@ class GoldImageGenerator:
         create_fake_file(os.path.join(ssh_dir, 'id_rsa'), "-----BEGIN RSA PRIVATE KEY-----\n" + fake.sha256() + "\n-----END RSA PRIVATE KEY-----")
         create_fake_file(os.path.join(ssh_dir, 'authorized_keys'), "ssh-rsa " + fake.sha256() + " devuser@workstation")
         
-        # known_hosts with internal IPs
         hosts = '\n'.join([f"10.0.0.{random.randint(2,254)} ssh-rsa {fake.sha256()}" for _ in range(15)])
         create_fake_file(os.path.join(ssh_dir, 'known_hosts'), hosts)
 
