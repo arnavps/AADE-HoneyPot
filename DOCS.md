@@ -36,7 +36,7 @@ AADE is built around one core idea: **a honeypot that reveals itself is useless*
 - **Behavior layer**: RL agent decides when to escalate vs. stay passive to maximize intelligence gained
 - **Exfiltration layer**: C2 traffic is sinkholes but the malware gets a convincing `200 OK` back, keeping it alive
 
-Every design choice serves the goal of keeping the attacker engaged longer, extracting more TTP intelligence, and never tipping them off.
+Every design choice serves the goal of keeping the attacker engaged longer, extracting more TTP intelligence, and never tipping them off
 
 ---
 
