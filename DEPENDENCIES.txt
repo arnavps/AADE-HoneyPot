@@ -27,7 +27,6 @@ gymnasium (OpenAI Gym replacement)
 torch (PyTorch Deep Learning Backend)
 numpy (Data processing)
 pandas (Intelligence analytics)
-
 ## [ADVANCED] Behavioral Synthesis (LLM)
 openai (OpenAI GPT API)
 # Local LLM Alternative:
