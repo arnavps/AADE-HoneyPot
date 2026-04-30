@@ -6,7 +6,6 @@ from llm_synthesizer import LLMSynthesizer
 class TestAADEAdvancedLogic(unittest.TestCase):
 
     def test_ttp_mapping(self):
-        # Basic reconnaissance
         tags = map_command_to_ttpx("ls -la /root")
         self.assertTrue(any(t['id'] == 'T1083' for t in tags))
         # Tool transfer
