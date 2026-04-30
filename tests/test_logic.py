@@ -13,7 +13,6 @@ class TestAADEAdvancedLogic(unittest.TestCase):
 
     def test_rl_fallback_logic(self):
         agent = RLAgent(model_path="non_existent.zip")
-        # High risk should trigger escalation (action 1)
         action = agent.decide(num_cmds=10, max_ttp=5, duration=100, risk=90)
         self.assertEqual(action, 1)
 
